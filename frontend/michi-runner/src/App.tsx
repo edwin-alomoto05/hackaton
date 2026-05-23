@@ -1,6 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { ComboAlert } from "./components/ComboAlert";
+import { LevelChangeBanner } from "./components/LevelChangeBanner";
+import { CityArrivalBanner } from "./components/CityArrivalBanner";
+import { CityTransition } from "./components/CityTransition";
+import { CountdownScreen } from "./components/CountdownScreen";
+import { DisconnectedScreen } from "./components/DisconnectedScreen";
 import { DilemmaModal } from "./components/DilemmaModal";
+import { FloatingNumbers } from "./components/FloatingNumber";
+import { RivalUpdate } from "./components/RivalUpdate";
+import { ScreenFlash } from "./components/ScreenFlash";
 import { EndScreen } from "./components/EndScreen";
+import { LeaderboardScreen } from "./components/LeaderboardScreen";
 import { GameTypeSelectScreen } from "./components/GameTypeSelectScreen";
 import { HUD } from "./components/HUD";
 import { IntroScreen } from "./components/IntroScreen";
@@ -18,14 +28,19 @@ export default function App() {
     createRoom,
     joinRoom,
     subscribeToRoom,
+    getRivalInitialState,
     updateMyState,
-    fetchRival,
     finishGame,
+    resetScoreSaved,
+    markReady,
+    subscribeToGameStart,
+    sendPing,
+    checkRivalPing,
+    fetchLeaderboard,
   } = useRoom();
 
   const [playerId, setPlayerId] = useState<string | null>(null);
-  const [lobbyError, setLobbyError] = useState<string | null>(null);
-  const cleanupRef = useRef<(() => void) | null>(null);
+  const [createRoomError, setCreateRoomError] = useState<string | null>(null);
 
   const handlePlayerIdChange = useCallback((id: string) => {
     setPlayerId(id);
@@ -38,95 +53,77 @@ export default function App() {
     selectMode,
     selectGameType,
     setLobbyInfo,
-    startGame,
+    clearLobbyError,
+    attemptJoinRoom,
     makeChoice,
-    updateRival,
+    cancelDilemmaTimer,
+    setupRivalSubscription,
+    goToLeaderboard,
+    filterLeaderboard,
+    toggleHistory,
     restart,
-    tryFinishMultiEnd,
-  } = useRunnerLoop(updateMyState, finishGame, createSingleRoom, playerId, handlePlayerIdChange);
-
-  const phaseRef = useRef(state.phase);
-  phaseRef.current = state.phase;
-
-  const setupSubscription = useCallback(
-    (rId: string, pId: string) => {
-      if (cleanupRef.current) {
-        cleanupRef.current();
-      }
-      cleanupRef.current = subscribeToRoom(rId, pId, (rival) => {
-        updateRival(rival);
-        if (phaseRef.current === "waiting") {
-          startGame();
-        }
-        tryFinishMultiEnd(rival);
-      });
-    },
-    [subscribeToRoom, updateRival, startGame, tryFinishMultiEnd],
+    handleDisconnection,
+    handleDisconnectedRetry,
+  } = useRunnerLoop(
+    updateMyState,
+    finishGame,
+    resetScoreSaved,
+    createSingleRoom,
+    markReady,
+    subscribeToGameStart,
+    subscribeToRoom,
+    getRivalInitialState,
+    fetchLeaderboard,
+    sendPing,
+    checkRivalPing,
+    joinRoom,
+    playerId,
+    handlePlayerIdChange,
   );
 
   useEffect(() => {
-    return () => {
-      if (cleanupRef.current) {
-        cleanupRef.current();
-      }
-    };
-  }, []);
+    if (state.rivalDisconnected) {
+      handleDisconnection();
+    }
+  }, [state.rivalDisconnected, handleDisconnection]);
+
+  useEffect(() => {
+    if (state.waitingTimeout) {
+      handleDisconnection();
+    }
+  }, [state.waitingTimeout, handleDisconnection]);
 
   const handleCreateRoom = useCallback(async () => {
     if (!state.mode) return;
-    setLobbyError(null);
+    setCreateRoomError(null);
+    clearLobbyError();
     try {
       const { roomCode, playerId: pid, roomId: rid } = await createRoom(state.mode, "JUGADOR 1");
       setPlayerId(pid);
       setLobbyInfo(roomCode, "JUGADOR 1", rid, "waiting");
-      setupSubscription(rid, pid);
-
-      const rival = await fetchRival(rid, pid);
-      if (rival) {
-        updateRival(rival);
-        startGame();
-      }
+      setupRivalSubscription(rid, pid);
     } catch (e) {
-      setLobbyError(e instanceof Error ? e.message : "Error al crear sala");
+      setCreateRoomError(e instanceof Error ? e.message : "Error al crear sala");
     }
-  }, [
-    state.mode,
-    createRoom,
-    setLobbyInfo,
-    setupSubscription,
-    fetchRival,
-    updateRival,
-    startGame,
-  ]);
+  }, [state.mode, createRoom, setLobbyInfo, setupRivalSubscription, clearLobbyError]);
 
   const handleJoinRoom = useCallback(
     async (code: string, playerName: string) => {
-      setLobbyError(null);
-      try {
-        const { roomId: rid, playerId: pid, roomCode } = await joinRoom(code, playerName);
-        setPlayerId(pid);
-        setLobbyInfo(roomCode, playerName, rid, "waiting");
-        setupSubscription(rid, pid);
+      const result = await attemptJoinRoom(code, playerName);
+      if (!result) return;
 
-        const rival = await fetchRival(rid, pid);
-        if (rival) {
-          updateRival(rival);
-        }
-        startGame();
-      } catch (e) {
-        setLobbyError(e instanceof Error ? e.message : "Error al unirse");
-      }
+      const normalizedCode = code.trim().replace(/\D/g, "").slice(0, 4);
+      const name = playerName.trim() || "Jugador 2";
+      setPlayerId(result.playerId);
+      setLobbyInfo(normalizedCode, name, result.roomId, "waiting");
+      setupRivalSubscription(result.roomId, result.playerId);
     },
-    [joinRoom, setLobbyInfo, setupSubscription, fetchRival, updateRival, startGame],
+    [attemptJoinRoom, setLobbyInfo, setupRivalSubscription],
   );
 
   const handleRestart = useCallback(() => {
-    if (cleanupRef.current) {
-      cleanupRef.current();
-      cleanupRef.current = null;
-    }
     setPlayerId(null);
-    setLobbyError(null);
+    setCreateRoomError(null);
     restart();
   }, [restart]);
 
@@ -144,16 +141,19 @@ export default function App() {
   const inGameCanvas =
     state.phase === "running" ||
     state.phase === "decision" ||
+    state.phase === "countdown" ||
     state.waitingForRival;
 
   return (
     <div
       style={{
-        minHeight: "100vh",
+        width: "100vw",
+        height: "100vh",
+        overflow: "hidden",
+        position: "relative",
         background: "#0f0f1a",
         display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
+        flexDirection: "column",
       }}
     >
       {state.phase === "intro" && (
@@ -171,55 +171,162 @@ export default function App() {
           mode={mode}
           roomCode={state.roomCode}
           isWaiting={state.phase === "waiting"}
-          error={lobbyError}
+          lobbyError={state.lobbyError}
+          onClearError={clearLobbyError}
           onCreateRoom={() => void handleCreateRoom()}
-          onJoinRoom={(code, name) => void handleJoinRoom(code, name)}
+          onJoinRoom={handleJoinRoom}
         />
+      )}
+
+      {createRoomError && (state.phase === "lobby" || state.phase === "waiting") && (
+        <p
+          style={{
+            position: "fixed",
+            bottom: 24,
+            left: "50%",
+            transform: "translateX(-50%)",
+            color: "#f87171",
+            fontSize: 8,
+            fontFamily: '"Press Start 2P", monospace',
+            zIndex: 100,
+          }}
+        >
+          {createRoomError}
+        </p>
       )}
 
       {inGameCanvas && mode && gameType && michiInfo && (
         <div
           style={{
+            width: "100%",
+            height: "100%",
             position: "relative",
-            width: 480,
-            height: 520,
             overflow: "hidden",
-            border: "4px solid #000",
-            boxShadow: "6px 6px 0 #fde047",
+            flex: 1,
           }}
         >
           <ScrollingBackground
             offset={state.bgOffset}
-            isPaused={state.phase === "decision" || state.waitingForRival}
+            isPaused={
+              state.phase === "decision" ||
+              state.phase === "countdown" ||
+              state.isTransitioning
+            }
             mode={mode}
+            cityIndex={state.cityIndex}
+            isTransitioning={state.isTransitioning}
+            transitionPhase={state.transitionPhase}
           />
-          <div style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 2 }}>
-            <HUD
-              balance={state.balance}
-              happiness={state.happiness}
-              michiLevel={state.michiLevel}
-              michiEmoji={michiInfo.emoji}
-              timeLeft={timeLeft}
-              rivalBalance={state.rival?.balance ?? 0}
-              rivalName={state.rival?.player_name ?? "RIVAL"}
+          {(state.phase === "running" || state.phase === "decision") && (
+            <CityTransition
+              transitionPhase={state.transitionPhase}
+              currentCityIndex={state.cityIndex}
+              nextCityIndex={state.nextCityIndex}
               mode={mode}
-              balanceUnit={MODE_CONFIG[mode].balanceUnit}
+            />
+          )}
+          {(state.phase === "running" || state.phase === "decision") && (
+            <CityArrivalBanner
+              isVisible={state.showCityArrival}
+              cityIndex={state.cityIndex}
+              mode={mode}
+            />
+          )}
+          <div
+            style={{
+              opacity: state.transitionPhase === "flash" ? 0 : 1,
+              transition: "opacity 0.2s ease",
+              position: "absolute",
+              inset: 0,
+              pointerEvents: state.transitionPhase === "flash" ? "none" : "auto",
+            }}
+          >
+            {gameType === "multi" && state.showRivalUpdate && state.rival && (
+              <RivalUpdate
+                rivalName={state.rival.player_name}
+                lastChoice={
+                  state.rival.choices[state.rival.choices.length - 1] ?? null
+                }
+                isGood={state.rivalLastChoiceGood}
+              />
+            )}
+            {state.phase !== "countdown" && (
+              <div style={{ position: "absolute", bottom: "15%", left: "15%", zIndex: 4 }}>
+                <MichiSprite
+                  emoji={michiInfo.emoji}
+                  isRunning={state.phase === "running" && !state.waitingForRival}
+                  level={state.michiLevel}
+                  reaction={state.michiReaction}
+                  mode={mode}
+                  isTransforming={state.isTransformingMichi}
+                  showLevelUp={state.showLevelUp}
+                  showLevelDown={state.showLevelDown}
+                  previousLevel={state.previousMichiLevel}
+                />
+              </div>
+            )}
+            {state.phase === "decision" &&
+              state.currentDilemma &&
+              !state.waitingForRival && (
+                <DilemmaModal
+                  dilemma={state.currentDilemma}
+                  onChoice={(c) => void makeChoice(c)}
+                  onChoiceIntent={cancelDilemmaTimer}
+                  mode={mode}
+                  dilemmaTimeLeft={state.dilemmaTimeLeft}
+                  dilemmaTimedOut={state.dilemmaTimedOut}
+                />
+              )}
+            <ScreenFlash feedback={state.feedback} />
+            <FloatingNumbers items={state.floatingNumbers} />
+            {(state.phase === "running" || state.phase === "decision") && (
+              <ComboAlert
+                isVisible={state.showComboAlert}
+                comboCount={state.comboCount}
+                comboBonus={state.comboBonus}
+                mode={mode}
+                balanceUnit={MODE_CONFIG[mode].balanceUnit}
+              />
+            )}
+            {(state.phase === "running" || state.phase === "decision") && (
+              <LevelChangeBanner
+                showLevelUp={state.showLevelUp}
+                showLevelDown={state.showLevelDown}
+                newLevel={state.michiLevel}
+                mode={mode}
+              />
+            )}
+          </div>
+          {state.phase === "countdown" && (
+            <CountdownScreen
+              value={state.countdownValue}
               gameType={gameType}
-            />
-          </div>
-          <div style={{ position: "absolute", bottom: 80, left: 60, zIndex: 2 }}>
-            <MichiSprite
-              emoji={michiInfo.emoji}
-              isRunning={state.phase === "running" && !state.waitingForRival}
-              level={state.michiLevel}
-            />
-          </div>
-          {state.phase === "decision" && state.currentDilemma && !state.waitingForRival && (
-            <DilemmaModal
-              dilemma={state.currentDilemma}
-              onChoice={(c) => void makeChoice(c)}
+              rivalName={state.rival?.player_name}
               mode={mode}
             />
+          )}
+          {state.phase !== "countdown" && (
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 6 }}>
+              <HUD
+                balance={state.balance}
+                happiness={state.happiness}
+                michiLevel={state.michiLevel}
+                michiEmoji={michiInfo.emoji}
+                timeLeft={timeLeft}
+                mode={mode}
+                balanceUnit={MODE_CONFIG[mode].balanceUnit}
+                gameType={gameType}
+                cityIndex={state.cityIndex}
+                cityProgress={state.cityProgress}
+                rival={state.rival}
+                isRivalActive={state.isRivalActive}
+                myBalance={state.balance}
+                comboCount={state.comboCount}
+                choices={state.choicesMade}
+                showHistory={state.showHistory}
+                onToggleHistory={toggleHistory}
+              />
+            </div>
           )}
           {state.waitingForRival && (
             <div
@@ -250,6 +357,31 @@ export default function App() {
           rival={state.rival}
           gameType={gameType}
           onRestart={handleRestart}
+          onViewLeaderboard={goToLeaderboard}
+        />
+      )}
+
+      {state.phase === "leaderboard" && (
+        <LeaderboardScreen
+          entries={state.leaderboard}
+          loading={state.leaderboardLoading}
+          error={state.leaderboardError}
+          mode={state.mode ?? "secundaria"}
+          filter={state.leaderboardFilter}
+          myPlayerName={state.playerName}
+          myFinalBalance={state.balance}
+          onFilterChange={filterLeaderboard}
+          onPlayAgain={handleRestart}
+          onBack={() => setPhase("end")}
+        />
+      )}
+
+      {state.phase === "disconnected" && state.disconnectReason && (
+        <DisconnectedScreen
+          reason={state.disconnectReason}
+          rivalName={state.rival?.player_name}
+          onRetry={handleDisconnectedRetry}
+          onExit={handleRestart}
         />
       )}
     </div>
