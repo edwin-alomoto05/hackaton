@@ -4,8 +4,14 @@ interface ScreenFlashProps {
   feedback: FeedbackType;
 }
 
+const TEXT_SHADOW =
+  "-0.2vmin -0.2vmin 0 #000, 0.2vmin -0.2vmin 0 #000, -0.2vmin 0.2vmin 0 #000, 0.2vmin 0.2vmin 0 #000";
+
 export function ScreenFlash({ feedback }: ScreenFlashProps) {
   if (feedback === null) return null;
+
+  const color = feedback === "good" ? "#4ade80" : "#f87171";
+  const label = feedback === "good" ? "✓ BUENA DECISIÓN" : "✗ MALA DECISIÓN";
 
   return (
     <div
@@ -15,9 +21,10 @@ export function ScreenFlash({ feedback }: ScreenFlashProps) {
         zIndex: 8,
         pointerEvents: "none",
         background:
-          feedback === "good" ? "rgba(74, 222, 128, 0.25)" : "rgba(248, 113, 113, 0.25)",
-        animation: "screenFlash 0.6s ease-out forwards",
-        border: feedback === "good" ? "0.5vmin solid #4ade80" : "0.5vmin solid #f87171",
+          feedback === "good" ? "rgba(74, 222, 128, 0.35)" : "rgba(248, 113, 113, 0.35)",
+        animation: "screenFlashImpact 0.6s steps(6) forwards",
+        border: `0.6vmin solid ${color}`,
+        boxShadow: `inset 0 0 8vmin ${color}44`,
       }}
     >
       <div
@@ -25,16 +32,17 @@ export function ScreenFlash({ feedback }: ScreenFlashProps) {
           position: "absolute",
           top: "50%",
           left: "50%",
-          transform: "translate(-50%,-50%)",
+          transform: "translate(-50%, -50%)",
           fontFamily: '"Press Start 2P", monospace',
-          fontSize: "5vmin",
-          color: feedback === "good" ? "#4ade80" : "#f87171",
-          animation: "countPop 0.4s ease-out forwards",
-          textShadow: feedback === "good" ? "0 0 20px #4ade80" : "0 0 20px #f87171",
+          fontSize: "4vmin",
+          color,
+          animation: "countPop 0.4s steps(4) forwards",
+          textShadow: TEXT_SHADOW,
           pointerEvents: "none",
+          willChange: "transform",
         }}
       >
-        {feedback === "good" ? "✓ BUENA DECISIÓN" : "✗ MALA DECISIÓN"}
+        {label}
       </div>
     </div>
   );

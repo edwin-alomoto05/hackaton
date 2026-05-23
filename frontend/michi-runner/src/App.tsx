@@ -16,6 +16,7 @@ import { HUD } from "./components/HUD";
 import { IntroScreen } from "./components/IntroScreen";
 import { LobbyScreen } from "./components/LobbyScreen";
 import { MichiSprite } from "./components/MichiSprite";
+import { NpcCharacter } from "./components/NpcCharacter";
 import { ModeSelectScreen } from "./components/ModeSelectScreen";
 import { ScrollingBackground } from "./components/ScrollingBackground";
 import { getMichiInfo, MODE_CONFIG } from "./constants/runner";
@@ -171,6 +172,7 @@ export default function App() {
           mode={mode}
           roomCode={state.roomCode}
           isWaiting={state.phase === "waiting"}
+          rivalJoined={!!state.rival}
           lobbyError={state.lobbyError}
           onClearError={clearLobbyError}
           onCreateRoom={() => void handleCreateRoom()}
@@ -250,6 +252,12 @@ export default function App() {
                 isGood={state.rivalLastChoiceGood}
               />
             )}
+            {(state.phase === "running" || state.phase === "decision") && (
+              <>
+                <NpcCharacter cityIndex={state.cityIndex} bgOffset={state.bgOffset} slot={0} />
+                <NpcCharacter cityIndex={state.cityIndex} bgOffset={state.bgOffset} slot={1} />
+              </>
+            )}
             {state.phase !== "countdown" && (
               <div style={{ position: "absolute", bottom: "15%", left: "15%", zIndex: 4 }}>
                 <MichiSprite
@@ -302,7 +310,9 @@ export default function App() {
               value={state.countdownValue}
               gameType={gameType}
               rivalName={state.rival?.player_name}
+              playerName={state.playerName || "TÚ"}
               mode={mode}
+              michiLevel={state.michiLevel}
             />
           )}
           {state.phase !== "countdown" && (

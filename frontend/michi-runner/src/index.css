@@ -411,17 +411,21 @@ body {
   animation: countPop 0.4s ease-out forwards;
 }
 .michi-run {
-  animation: michiRun 0.4s ease-in-out infinite;
+  animation: michiRun 0.4s steps(2) infinite;
+  will-change: transform;
 }
 .michi-celebrate {
-  animation: michiCelebrate 0.5s ease-in-out 2;
+  animation: michiCelebrate 0.5s steps(4) 2;
 }
 .michi-sad {
-  animation: michiSad 0.4s ease-in-out 2;
+  animation: michiSad 0.4s steps(4) 2;
   filter: brightness(0.7) grayscale(0.5);
 }
 .michi-curious {
-  animation: michiCurious 0.8s ease-in-out infinite;
+  animation: michiCurious 0.8s steps(4) infinite;
+}
+.buildings-scroll {
+  will-change: transform;
 }
 .coin-particle {
   position: absolute;
@@ -442,9 +446,9 @@ body {
   animation: blink 1s step-end infinite;
 }
 .spinner {
-  width: 32px;
-  height: 32px;
-  border: 4px solid #fde047;
+  width: 4vmin;
+  height: 4vmin;
+  border: 0.5vmin solid #fde047;
   border-top-color: transparent;
   animation: spin 1s linear infinite;
 }
@@ -452,22 +456,22 @@ body {
   font-family: "Press Start 2P", monospace;
   background: #fde047;
   color: #000;
-  border: 4px solid #000;
-  box-shadow: 4px 4px 0px #000;
-  padding: 14px 28px;
-  border-radius: 0px;
+  border: 0.5vmin solid #000;
+  box-shadow: 0.5vmin 0.5vmin 0 #000;
+  padding: 1.8vmin 3.5vmin;
+  border-radius: 0;
   cursor: pointer;
-  font-size: 10px;
+  font-size: 1.2vmin;
   transition: transform 0.1s, box-shadow 0.1s;
   display: inline-block;
 }
 .px-btn:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0 #000;
+  transform: translate(-0.25vmin, -0.25vmin);
+  box-shadow: 0.75vmin 0.75vmin 0 #000;
 }
 .px-btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 #000;
+  transform: translate(0.25vmin, 0.25vmin);
+  box-shadow: 0.25vmin 0.25vmin 0 #000;
 }
 .px-btn-blue {
   background: #60a5fa;
@@ -477,19 +481,19 @@ body {
 }
 .px-card {
   background: #1a1a2e;
-  border: 4px solid #000;
-  box-shadow: 6px 6px 0px #000;
-  border-radius: 0px;
-  padding: 20px;
+  border: 0.5vmin solid #000;
+  box-shadow: 0.75vmin 0.75vmin 0 #000;
+  border-radius: 0;
+  padding: 2.5vmin;
 }
 .px-input {
   font-family: "Press Start 2P", monospace;
   background: #0f0f1a;
   color: #f1f5f9;
-  border: 3px solid #f1f5f9;
-  border-radius: 0px;
-  padding: 10px 14px;
-  font-size: 10px;
+  border: 0.4vmin solid #f1f5f9;
+  border-radius: 0;
+  padding: 1.2vmin 1.8vmin;
+  font-size: 1.2vmin;
   outline: none;
   width: 100%;
 }
@@ -497,21 +501,890 @@ body {
   border-color: #fde047;
 }
 .px-bar {
-  height: 16px;
+  height: 2vmin;
   background: #0f0f1a;
-  border: 3px solid #000;
-  border-radius: 0px;
+  border: 0.4vmin solid #000;
+  border-radius: 0;
   overflow: hidden;
 }
 .px-code {
   font-family: "Press Start 2P", monospace;
   background: #fde047;
   color: #000;
-  border: 4px solid #000;
-  box-shadow: 4px 4px 0 #000;
-  padding: 12px 24px;
-  font-size: 28px;
-  letter-spacing: 10px;
-  border-radius: 0px;
+  border: 0.5vmin solid #000;
+  box-shadow: 0.5vmin 0.5vmin 0 #000;
+  padding: 1.5vmin 3vmin;
+  font-size: 3.5vmin;
+  letter-spacing: 1.25vmin;
+  border-radius: 0;
   display: inline-block;
+}
+
+@keyframes cloudDrift {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100vw);
+  }
+}
+@keyframes sunPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+@keyframes waveShift {
+  0% {
+    transform: translateX(0);
+  }
+  33% {
+    transform: translateX(-1vmin);
+  }
+  66% {
+    transform: translateX(1vmin);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+@keyframes starTwinkle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes shadowPulse {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scaleX(0.8);
+    opacity: 0.15;
+  }
+}
+@keyframes tailWag {
+  0%,
+  100% {
+    transform: rotateZ(-20deg) translateY(0);
+  }
+  50% {
+    transform: rotateZ(20deg) translateY(-0.3vmin);
+  }
+}
+@keyframes michiLegs {
+  0% {
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-0.3vmin);
+  }
+  50% {
+    transform: translateY(0);
+  }
+  75% {
+    transform: translateY(0.2vmin);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+@keyframes michiLegLeft {
+  0% {
+    transform: rotateZ(-20deg) translateX(-0.2vmin);
+  }
+  25% {
+    transform: rotateZ(0deg) translateX(0);
+  }
+  50% {
+    transform: rotateZ(20deg) translateX(0.2vmin);
+  }
+  75% {
+    transform: rotateZ(0deg) translateX(0);
+  }
+  100% {
+    transform: rotateZ(-20deg) translateX(-0.2vmin);
+  }
+}
+@keyframes michiLegRight {
+  0% {
+    transform: rotateZ(20deg) translateX(0.2vmin);
+  }
+  25% {
+    transform: rotateZ(0deg) translateX(0);
+  }
+  50% {
+    transform: rotateZ(-20deg) translateX(-0.2vmin);
+  }
+  75% {
+    transform: rotateZ(0deg) translateX(0);
+  }
+  100% {
+    transform: rotateZ(20deg) translateX(0.2vmin);
+  }
+}
+@keyframes hudShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-0.3vmin);
+  }
+  75% {
+    transform: translateX(0.3vmin);
+  }
+}
+@keyframes modalEntrance {
+  0% {
+    transform: scale(0.5) translateY(5vmin);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.05) translateY(-0.5vmin);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(0.98) translateY(0.2vmin);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes selectedPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0.5vmin #fff;
+  }
+  50% {
+    box-shadow: 0 0 0 1vmin #fff;
+  }
+}
+@keyframes checkAppear {
+  0% {
+    transform: scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.2) rotate(5deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+@keyframes screenFlashImpact {
+  0% {
+    opacity: 1;
+  }
+  16% {
+    opacity: 0.8;
+  }
+  33% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  66% {
+    opacity: 0.1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes floatUpPixel {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  20% {
+    transform: translateY(-1.5vmin) scale(1.1);
+  }
+  40% {
+    transform: translateY(-3vmin) scale(1);
+  }
+  60% {
+    transform: translateY(-4.5vmin) scale(0.95);
+  }
+  80% {
+    transform: translateY(-6vmin) scale(0.9);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-8vmin) scale(0.8);
+    opacity: 0;
+  }
+}
+@keyframes npcWalkCycle {
+  0% {
+    transform: scaleX(-1) translateY(0);
+  }
+  50% {
+    transform: scaleX(-1) translateY(-0.5vmin);
+  }
+  100% {
+    transform: scaleX(-1) translateY(0);
+  }
+}
+@keyframes npcLegs {
+  0%,
+  100% {
+    border-left-width: 0.8vmin;
+    border-right-width: 0.3vmin;
+  }
+  50% {
+    border-left-width: 0.3vmin;
+    border-right-width: 0.8vmin;
+  }
+}
+@keyframes bubbleFloat {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-0.5vmin);
+  }
+}
+@keyframes bubblePulse {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    transform: translateX(-50%) scale(1.1);
+  }
+}
+@keyframes bubbleUrgent {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    transform: translateX(-50%) scale(1.2) rotateZ(-3deg);
+  }
+}
+
+.michi-run-sprite {
+  animation: michiLegs 0.4s steps(4) infinite;
+  will-change: transform;
+}
+.michi-legs-run .michi-leg-left {
+  animation: michiLegLeft 0.4s steps(4) infinite;
+  will-change: transform;
+}
+.michi-legs-run .michi-leg-right {
+  animation: michiLegRight 0.4s steps(4) infinite;
+  will-change: transform;
+}
+.michi-tail {
+  animation: tailWag 0.8s steps(2) infinite;
+}
+.michi-shadow {
+  animation: shadowPulse 0.4s steps(2) infinite;
+}
+.michi-celebrate-sprite {
+  animation: michiLegs 0.5s steps(4) 2;
+  will-change: transform;
+}
+.michi-curious-sprite {
+  animation: michiCurious 0.8s steps(4) infinite;
+}
+.michi-sad-sprite {
+  animation: michiSad 0.4s steps(4) 2;
+}
+.michi-level-up {
+  animation: michiLevelUp 1.5s steps(6) forwards;
+  will-change: transform;
+}
+.michi-level-down {
+  animation: michiLevelDown 1.5s steps(6) forwards;
+  will-change: transform;
+}
+.modal-entrance {
+  animation: modalEntrance 0.4s steps(8) forwards;
+  will-change: transform;
+}
+.npc-walk {
+  animation: npcWalkCycle 0.5s steps(2) infinite;
+  will-change: transform;
+}
+.npc-legs {
+  animation: npcLegs 0.5s steps(2) infinite;
+}
+.hud-mini-michi {
+  animation: michiLegs 0.4s steps(2) infinite;
+  will-change: transform;
+}
+
+@keyframes starTwinkleSlow {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.2;
+    transform: scale(0.5);
+  }
+}
+@keyframes starTwinkleMed {
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes starTwinkleFast {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.1;
+  }
+}
+@keyframes meteorShoot {
+  0% {
+    transform: translateX(0) translateY(0) rotateZ(45deg);
+    opacity: 1;
+  }
+  70% {
+    transform: translateX(40vw) translateY(40vh) rotateZ(45deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(40vw) translateY(40vh) rotateZ(45deg);
+    opacity: 0;
+  }
+}
+@keyframes michiDrop {
+  0% {
+    transform: translateY(-30vmin) rotate(-10deg);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(2vmin) rotate(3deg);
+    opacity: 1;
+  }
+  75% {
+    transform: translateY(-1vmin) rotate(-2deg);
+  }
+  87% {
+    transform: translateY(0.5vmin) rotate(1deg);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+}
+@keyframes michiIdle {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-0.5vmin) rotate(1deg);
+  }
+}
+.michi-logo {
+  animation: michiDrop 0.8s steps(8) forwards;
+  will-change: transform;
+}
+.michi-logo-idle {
+  animation: michiIdle 2s steps(4) infinite;
+  will-change: transform;
+}
+@keyframes orbitCoin {
+  0% {
+    transform: rotate(0deg) translateX(6vmin) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(6vmin) rotate(-360deg);
+  }
+}
+@keyframes separatorSlide {
+  0% {
+    opacity: 0;
+    transform: translateX(-2vmin);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes separatorSlideRight {
+  0% {
+    opacity: 0;
+    transform: translateX(2vmin);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes diamondSpin {
+  0% {
+    transform: rotateZ(45deg);
+  }
+  25% {
+    transform: rotateZ(90deg);
+  }
+  50% {
+    transform: rotateZ(135deg);
+  }
+  75% {
+    transform: rotateZ(180deg);
+  }
+  100% {
+    transform: rotateZ(225deg);
+  }
+}
+@keyframes btnDropIn {
+  0% {
+    opacity: 0;
+    transform: translateY(3vmin);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-0.5vmin);
+  }
+  80% {
+    transform: translateY(0.2vmin);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes btnAttention {
+  0%,
+  70%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0.5vmin 0.5vmin 0 #000;
+  }
+  75% {
+    transform: scale(1.03);
+    box-shadow: 0.7vmin 0.7vmin 0 #000;
+  }
+  80% {
+    transform: scale(1);
+    box-shadow: 0.5vmin 0.5vmin 0 #000;
+  }
+  85% {
+    transform: scale(1.03);
+    box-shadow: 0.7vmin 0.7vmin 0 #000;
+  }
+  90% {
+    transform: scale(1);
+    box-shadow: 0.5vmin 0.5vmin 0 #000;
+  }
+}
+.intro-btn-play {
+  opacity: 0;
+  animation: btnDropIn 0.5s steps(6) forwards, btnAttention 2s steps(4) infinite;
+  animation-delay: 3000ms, 3500ms;
+  will-change: transform;
+}
+.intro-press-hint {
+  opacity: 0;
+  animation: introPressFade 0.3s steps(2) forwards, blink 1s steps(1) infinite;
+  animation-delay: 4000ms, 4300ms;
+}
+@keyframes introPressFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.intro-separator-wrap {
+  opacity: 0;
+  animation: introPressFade 0.3s steps(2) forwards;
+  animation-delay: 2300ms;
+}
+@keyframes cornerInTL {
+  0% {
+    opacity: 0;
+    transform: translate(-2vmin, -2vmin);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+}
+@keyframes cornerInTR {
+  0% {
+    opacity: 0;
+    transform: translate(2vmin, -2vmin);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+}
+@keyframes cornerInBL {
+  0% {
+    opacity: 0;
+    transform: translate(-2vmin, 2vmin);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+}
+@keyframes cornerInBR {
+  0% {
+    opacity: 0;
+    transform: translate(2vmin, 2vmin);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+}
+.corner-in-tl {
+  animation: cornerInTL 0.4s steps(4) forwards;
+  animation-delay: 200ms;
+  will-change: transform;
+}
+.corner-in-tr {
+  animation: cornerInTR 0.4s steps(4) forwards;
+  animation-delay: 200ms;
+  will-change: transform;
+}
+.corner-in-bl {
+  animation: cornerInBL 0.4s steps(4) forwards;
+  animation-delay: 200ms;
+  will-change: transform;
+}
+.corner-in-br {
+  animation: cornerInBR 0.4s steps(4) forwards;
+  animation-delay: 200ms;
+  will-change: transform;
+}
+@keyframes marqueeScroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes coinBob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2vmin);
+  }
+}
+.intro-orbit-coin {
+  animation: orbitCoin 3s steps(24) infinite linear;
+  will-change: transform;
+}
+.intro-side-coin {
+  animation: coinBob 4s steps(16) infinite;
+  will-change: transform;
+}
+
+/* ── Countdown (Prompt 4) ── */
+@keyframes numberImpact {
+  0% {
+    transform: scale(3);
+    opacity: 0;
+  }
+  30% {
+    transform: scale(0.9);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  70% {
+    transform: scale(0.97);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes screenShake {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  10% {
+    transform: translate(-1vmin, -0.5vmin);
+  }
+  20% {
+    transform: translate(1vmin, 0.5vmin);
+  }
+  30% {
+    transform: translate(-0.8vmin, 0.3vmin);
+  }
+  40% {
+    transform: translate(0.8vmin, -0.3vmin);
+  }
+  50% {
+    transform: translate(-0.5vmin, 0.5vmin);
+  }
+  60% {
+    transform: translate(0.5vmin, -0.2vmin);
+  }
+  70% {
+    transform: translate(-0.3vmin, 0.3vmin);
+  }
+  80% {
+    transform: translate(0.3vmin, 0);
+  }
+  90% {
+    transform: translate(0, -0.2vmin);
+  }
+}
+@keyframes instantFlash {
+  0% {
+    opacity: 1;
+  }
+  60% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes vignettePulse {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes goExplosion {
+  0% {
+    transform: scale(0.1);
+    opacity: 0;
+    letter-spacing: 5vmin;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+    letter-spacing: 0.5vmin;
+  }
+  75% {
+    transform: scale(0.97);
+    letter-spacing: 0.2vmin;
+  }
+  100% {
+    transform: scale(1);
+    letter-spacing: 0.3vmin;
+  }
+}
+@keyframes particleExplode {
+  0% {
+    transform: rotate(var(--angle)) translateX(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(var(--angle)) translateX(8vmin) scale(0);
+    opacity: 0;
+  }
+}
+@keyframes particleExplodeGo {
+  0% {
+    transform: rotate(var(--angle)) translateX(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(var(--angle)) translateX(15vmin) scale(0);
+    opacity: 0;
+  }
+}
+.screen-shake {
+  animation: screenShake 0.4s steps(10) forwards;
+  will-change: transform;
+}
+.number-impact {
+  animation: numberImpact 0.5s steps(10) forwards;
+  will-change: transform;
+}
+.go-explosion-text {
+  display: inline-block;
+  animation: goExplosion 0.4s steps(8) forwards;
+  will-change: transform;
+}
+.particle-explode {
+  animation: particleExplode 0.5s steps(5) forwards;
+}
+.particle-explode-go {
+  animation: particleExplodeGo 0.5s steps(5) forwards;
+}
+.countdown-vs-pulse {
+  animation: comboPulse 1s steps(2) infinite;
+  will-change: transform;
+}
+.countdown-michi-run .michi-run-sprite {
+  animation: michiRun 0.2s steps(2) infinite;
+  will-change: transform;
+}
+
+/* ── End screen (Prompt 4) ── */
+@keyframes confettiFall {
+  0% {
+    transform: translateY(-5vh) rotate(0deg) translateX(0);
+    opacity: 1;
+  }
+  25% {
+    transform: translateY(25vh) rotate(90deg) translateX(2vmin);
+  }
+  50% {
+    transform: translateY(50vh) rotate(180deg) translateX(-2vmin);
+  }
+  75% {
+    transform: translateY(75vh) rotate(270deg) translateX(2vmin);
+  }
+  100% {
+    transform: translateY(105vh) rotate(360deg) translateX(0);
+    opacity: 0.3;
+  }
+}
+@keyframes trophyBounce {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-1vmin) rotate(-3deg);
+  }
+  75% {
+    transform: translateY(-1vmin) rotate(3deg);
+  }
+}
+@keyframes handshakeAnim {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(0.5vmin);
+  }
+}
+@keyframes slideFromLeft {
+  0% {
+    transform: translateX(-5vmin);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes slideFromRight {
+  0% {
+    transform: translateX(5vmin);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes rowReveal {
+  0% {
+    transform: translateX(-2vmin);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+.trophy-bounce {
+  animation: trophyBounce 1s steps(4) infinite;
+}
+.handshake-michi {
+  animation: handshakeAnim 1s steps(4) infinite;
+  will-change: transform;
+}
+.end-slide-left {
+  opacity: 0;
+  animation: slideFromLeft 0.4s steps(8) forwards;
+  animation-delay: 0.3s;
+  will-change: transform;
+}
+.end-slide-right {
+  opacity: 0;
+  animation: slideFromRight 0.4s steps(8) forwards;
+  animation-delay: 0.5s;
+  will-change: transform;
+}
+.end-row-reveal {
+  animation: rowReveal 0.2s steps(4) forwards;
+  will-change: transform;
+}
+.end-stat-reveal {
+  opacity: 0;
+  animation: rowReveal 0.2s steps(4) forwards;
+}
+.end-game-over-blink {
+  animation: blink 0.6s steps(1) 5;
+}
+.end-scanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.1) 2px,
+    rgba(0, 0, 0, 0.1) 4px
+  );
+  animation: scanlines 8s steps(200) infinite linear;
+}
+@keyframes scanlines {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 0 4px;
+  }
+}
+.end-btn-reveal-1 {
+  opacity: 0;
+  animation: btnDropIn 0.3s steps(6) forwards;
+}
+.end-btn-reveal-2 {
+  opacity: 0;
+  animation: btnDropIn 0.3s steps(6) forwards;
+  animation-delay: 0.15s;
+}
+.end-score-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1vmin;
+  opacity: 0;
+  animation: rowReveal 0.3s steps(4) forwards;
+  animation-delay: 0.3s;
+  padding: 1vmin 2vmin;
+  background: #0f0f1a;
+  border: 0.3vmin solid #4ade80;
 }

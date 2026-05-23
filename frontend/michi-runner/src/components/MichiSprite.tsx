@@ -1,5 +1,4 @@
 import type { CSSProperties } from "react";
-import { getMichiInfo } from "../constants/runner";
 import type { GameMode, MichiReaction } from "../types/game";
 
 interface MichiSpriteProps {
@@ -14,67 +13,350 @@ interface MichiSpriteProps {
   previousLevel: 1 | 2 | 3;
 }
 
-const STAR_BURST_POSITIONS = [
-  { tx: "-3vmin", ty: "-4vmin" },
-  { tx: "3vmin", ty: "-4vmin" },
-  { tx: "-4vmin", ty: "2vmin" },
-  { tx: "4vmin", ty: "2vmin" },
-  { tx: "0", ty: "-5vmin" },
-] as const;
+const PX = "1.2vmin";
 
-const CLOUD_PUFF_POSITIONS = [
-  { tx: "-3vmin", ty: "-2vmin" },
-  { tx: "3vmin", ty: "-2vmin" },
-  { tx: "0", ty: "-4vmin" },
+function Block({
+  style,
+  className,
+}: {
+  style: CSSProperties;
+  className?: string;
+}) {
+  return (
+    <div
+      className={className}
+      style={{
+        position: "absolute",
+        boxSizing: "border-box",
+        ...style,
+      }}
+    />
+  );
+}
+
+function MichiHead({ curious, sad }: { curious?: boolean; sad?: boolean }) {
+  const headRotate = curious ? "15deg" : sad ? "-15deg" : "0deg";
+  return (
+    <div
+      style={{
+        position: "relative",
+        width: `calc(${PX} * 8)`,
+        height: `calc(${PX} * 7)`,
+        transform: `rotateZ(${headRotate})`,
+        transformOrigin: "bottom center",
+      }}
+    >
+      <Block
+        style={{
+          left: `calc(${PX} * 2)`,
+          top: 0,
+          width: `calc(${PX} * 2)`,
+          height: `calc(${PX} * 2)`,
+          background: "#f4a460",
+        }}
+      />
+      <Block
+        style={{
+          right: `calc(${PX} * 2)`,
+          top: 0,
+          width: `calc(${PX} * 2)`,
+          height: `calc(${PX} * 2)`,
+          background: "#f4a460",
+        }}
+      />
+      <Block
+        style={{
+          left: `calc(${PX} * 2.5)`,
+          top: `calc(${PX} * 0.5)`,
+          width: PX,
+          height: PX,
+          background: "#ff8c69",
+        }}
+      />
+      <Block
+        style={{
+          right: `calc(${PX} * 2.5)`,
+          top: `calc(${PX} * 0.5)`,
+          width: PX,
+          height: PX,
+          background: "#ff8c69",
+        }}
+      />
+      <Block
+        style={{
+          left: 0,
+          top: `calc(${PX} * 2)`,
+          width: `calc(${PX} * 8)`,
+          height: `calc(${PX} * 5)`,
+          background: "#f4a460",
+        }}
+      />
+      {!sad && (
+        <>
+          <Block
+            style={{
+              left: `calc(${PX} * 2)`,
+              top: `calc(${PX} * 3)`,
+              width: curious ? `calc(${PX} * 2)` : `calc(${PX} * 2)`,
+              height: curious ? `calc(${PX} * 3)` : `calc(${PX} * 2)`,
+              background: "#1a1a1a",
+            }}
+          />
+          <Block
+            style={{
+              left: `calc(${PX} * 2.8)`,
+              top: `calc(${PX} * 3.2)`,
+              width: PX,
+              height: PX,
+              background: "#fff",
+            }}
+          />
+          <Block
+            style={{
+              right: `calc(${PX} * 2)`,
+              top: `calc(${PX} * 3)`,
+              width: `calc(${PX} * 2)`,
+              height: curious ? `calc(${PX} * 3)` : `calc(${PX} * 2)`,
+              background: "#1a1a1a",
+            }}
+          />
+          <Block
+            style={{
+              right: `calc(${PX} * 2.8)`,
+              top: `calc(${PX} * 3.2)`,
+              width: PX,
+              height: PX,
+              background: "#fff",
+            }}
+          />
+        </>
+      )}
+      {sad && (
+        <>
+          <Block
+            style={{
+              left: `calc(${PX} * 2)`,
+              top: `calc(${PX} * 3.5)`,
+              width: `calc(${PX} * 2)`,
+              height: PX,
+              background: "#1a1a1a",
+            }}
+          />
+          <Block
+            style={{
+              right: `calc(${PX} * 2)`,
+              top: `calc(${PX} * 3.5)`,
+              width: `calc(${PX} * 2)`,
+              height: PX,
+              background: "#1a1a1a",
+            }}
+          />
+          <Block
+            style={{
+              left: `calc(${PX} * 3)`,
+              top: `calc(${PX} * 5)`,
+              width: `calc(${PX} * 2)`,
+              height: PX,
+              background: "#8b4513",
+            }}
+          />
+        </>
+      )}
+      {!sad && (
+        <Block
+          style={{
+            left: `calc(${PX} * 3)`,
+            top: `calc(${PX} * 5)`,
+            width: `calc(${PX} * 2)`,
+            height: PX,
+            background: "#ff8c69",
+          }}
+        />
+      )}
+      <Block
+        style={{
+          left: 0,
+          top: `calc(${PX} * 4)`,
+          width: `calc(${PX} * 3)`,
+          height: PX,
+          background: "#f4a460",
+        }}
+      />
+      <Block
+        style={{
+          right: 0,
+          top: `calc(${PX} * 4)`,
+          width: `calc(${PX} * 3)`,
+          height: PX,
+          background: "#f4a460",
+        }}
+      />
+    </div>
+  );
+}
+
+function MichiBody({ level }: { level: 1 | 2 | 3 }) {
+  if (level === 1) {
+    return (
+      <div style={{ position: "relative", width: `calc(${PX} * 6)`, height: `calc(${PX} * 5)` }}>
+        <Block
+          style={{
+            inset: 0,
+            width: `calc(${PX} * 6)`,
+            height: `calc(${PX} * 5)`,
+            background: "#d4843a",
+          }}
+        />
+        <Block
+          style={{
+            left: `calc(${PX} * 2)`,
+            top: `calc(${PX} * 1.5)`,
+            width: `calc(${PX} * 2)`,
+            height: `calc(${PX} * 2)`,
+            background: "#888",
+          }}
+        />
+        <Block
+          style={{
+            right: `calc(${PX} * 1)`,
+            top: 0,
+            width: `calc(${PX} * 2)`,
+            height: PX,
+            background: "#d4843a",
+          }}
+        />
+        <Block
+          style={{
+            right: `calc(${PX} * 1.5)`,
+            top: `calc(${PX} * 1.5)`,
+            width: `calc(${PX} * 2)`,
+            height: PX,
+            background: "#1a1a1a",
+          }}
+        />
+      </div>
+    );
+  }
+  if (level === 3) {
+    return (
+      <div style={{ position: "relative", width: `calc(${PX} * 6)`, height: `calc(${PX} * 5)` }}>
+        <Block
+          style={{
+            left: 0,
+            top: `calc(${PX} * 2)`,
+            width: `calc(${PX} * 6)`,
+            height: `calc(${PX} * 3)`,
+            background: "#1a1a2e",
+          }}
+        />
+        <Block
+          style={{
+            left: 0,
+            top: 0,
+            width: `calc(${PX} * 6)`,
+            height: `calc(${PX} * 2)`,
+            background: "#f4a460",
+          }}
+        />
+        <Block
+          style={{
+            left: `calc(${PX} * 2.5)`,
+            top: `calc(${PX} * 2)`,
+            width: PX,
+            height: `calc(${PX} * 2)`,
+            background: "#cc0000",
+          }}
+        />
+        <Block
+          style={{
+            left: PX,
+            top: PX,
+            width: PX,
+            height: PX,
+            background: "#ffd700",
+          }}
+        />
+      </div>
+    );
+  }
+  return (
+    <div style={{ position: "relative", width: `calc(${PX} * 6)`, height: `calc(${PX} * 5)` }}>
+      <Block
+        style={{
+          inset: 0,
+          width: `calc(${PX} * 6)`,
+          height: `calc(${PX} * 5)`,
+          background: "#f4a460",
+        }}
+      />
+      <Block
+        style={{
+          left: 0,
+          bottom: 0,
+          width: `calc(${PX} * 6)`,
+          height: `calc(${PX} * 2)`,
+          background: "#2255aa",
+        }}
+      />
+      <Block
+        style={{
+          left: `calc(${PX} * 2.5)`,
+          bottom: `calc(${PX} * 0.5)`,
+          width: PX,
+          height: PX,
+          background: "#1a3a8a",
+        }}
+      />
+    </div>
+  );
+}
+
+const STAR_POSITIONS = [
+  { left: "-3vmin", top: "-2vmin" },
+  { left: "3vmin", top: "-3vmin" },
+  { right: "-3vmin", top: "-2vmin" },
+  { left: "0", top: "-4vmin" },
 ] as const;
 
 export function MichiSprite({
-  emoji,
+  emoji: _emoji,
   isRunning,
   level,
   reaction,
-  mode,
+  mode: _mode,
   isTransforming,
   showLevelUp,
   showLevelDown,
+  previousLevel: _previousLevel,
 }: MichiSpriteProps) {
-  const displayEmoji = getMichiInfo(mode, level).emoji || emoji;
+  void _emoji;
+  void _mode;
+  void _previousLevel;
+  void showLevelUp;
+  void showLevelDown;
+
+  const curious = reaction === "curious";
+  const sad = reaction === "sad";
+  const celebrate = reaction === "celebrate";
+  const running = reaction === "run" && isRunning && !isTransforming;
+
+  let containerClass = "";
+  if (isTransforming) {
+    containerClass = showLevelUp ? "michi-level-up" : "michi-level-down";
+  } else if (running) {
+    containerClass = "michi-run-sprite";
+  } else if (celebrate) {
+    containerClass = "michi-celebrate-sprite";
+  } else if (sad) {
+    containerClass = "michi-sad-sprite";
+  } else if (curious) {
+    containerClass = "michi-curious-sprite";
+  }
 
   let levelFilter = "none";
   if (!isTransforming) {
-    if (level === 1) {
-      levelFilter = "brightness(0.6) grayscale(0.3)";
-    } else if (level === 3) {
-      levelFilter = "drop-shadow(0 0 8px #fde047)";
-    }
-  }
-
-  let reactionClass: string | undefined;
-  if (!isTransforming) {
-    if (reaction === "run" && isRunning) {
-      reactionClass = "michi-run";
-    } else if (reaction === "celebrate") {
-      reactionClass = "michi-celebrate";
-    } else if (reaction === "sad") {
-      reactionClass = "michi-sad";
-    } else if (reaction === "curious") {
-      reactionClass = "michi-curious";
-    }
-  }
-
-  const transformAnimation = isTransforming
-    ? showLevelUp
-      ? "michiLevelUp 1.5s ease-in-out forwards"
-      : "michiLevelDown 1.5s ease-in-out forwards"
-    : undefined;
-
-  let emojiFilter: string | undefined = levelFilter;
-  if (isTransforming && showLevelUp) {
-    emojiFilter = "drop-shadow(0 0 2vmin #fde047)";
-  } else if (isTransforming && showLevelDown) {
-    emojiFilter = "drop-shadow(0 0 2vmin #f87171)";
-  } else if (reaction === "sad") {
-    emojiFilter = undefined;
+    if (level === 1) levelFilter = "brightness(0.75) saturate(0.9)";
+    if (level === 3) levelFilter = "drop-shadow(0 0 0.8vmin #fde047)";
   }
 
   return (
@@ -84,115 +366,120 @@ export function MichiSprite({
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        textAlign: "center",
-        ["--michi-size" as string]: "8vmin",
       }}
     >
       <div
-        className={reactionClass}
+        className={containerClass}
         style={{
           position: "relative",
-          width: "var(--michi-size)",
-          height: "var(--michi-size)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          animation: transformAnimation,
+          filter: sad ? "brightness(0.7) grayscale(0.4)" : levelFilter,
+          willChange: "transform",
         }}
       >
         <div
           style={{
-            fontSize: "var(--michi-size)",
-            filter: emojiFilter,
-            lineHeight: 1,
-            transition: "filter 0.5s ease",
+            position: "relative",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
           }}
         >
-          {displayEmoji}
+          <MichiHead curious={curious} sad={sad} />
+          <div style={{ marginTop: `calc(${PX} * -0.5)` }}>
+            <MichiBody level={level} />
+          </div>
+          <div
+            className={running ? "michi-legs-run" : undefined}
+            style={{
+              position: "relative",
+              width: `calc(${PX} * 6)`,
+              height: `calc(${PX} * 3)`,
+              marginTop: `calc(${PX} * -0.5)`,
+            }}
+          >
+            <Block
+              className="michi-leg-left"
+              style={{
+                left: `calc(${PX} * 1)`,
+                bottom: 0,
+                width: PX,
+                height: `calc(${PX} * 3)`,
+                background: "#f4a460",
+                transformOrigin: "top center",
+              }}
+            />
+            <Block
+              className="michi-leg-right"
+              style={{
+                right: `calc(${PX} * 1)`,
+                bottom: 0,
+                width: PX,
+                height: `calc(${PX} * 3)`,
+                background: "#f4a460",
+                transformOrigin: "top center",
+              }}
+            />
+          </div>
+          <div
+            className="michi-tail"
+            style={{
+              position: "absolute",
+              right: `calc(${PX} * -1)`,
+              bottom: `calc(${PX} * 2)`,
+              width: PX,
+              height: `calc(${PX} * 4)`,
+              background: "#f4a460",
+              transformOrigin: "bottom center",
+              transform: curious
+                ? "rotateZ(-45deg)"
+                : sad
+                  ? "rotateZ(70deg)"
+                  : undefined,
+              willChange: "transform",
+            }}
+          />
         </div>
 
-        {isTransforming && showLevelUp &&
-          STAR_BURST_POSITIONS.map((pos, i) => (
+        {celebrate &&
+          STAR_POSITIONS.map((pos, i) => (
             <div
               key={i}
-              style={
-                {
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  fontSize: "2.5vmin",
-                  animation: `starBurst 0.8s ease-out ${i * 0.1}s forwards`,
-                  "--tx": pos.tx,
-                  "--ty": pos.ty,
-                  pointerEvents: "none",
-                } as CSSProperties
-              }
-            >
-              ⭐
-            </div>
+              style={{
+                position: "absolute",
+                left: "left" in pos ? pos.left : undefined,
+                right: "right" in pos ? pos.right : undefined,
+                top: pos.top,
+                width: "1.5vmin",
+                height: "1.5vmin",
+                background: "#ffd700",
+                border: "0.15vmin solid #000",
+                animation: `starBurst 0.8s steps(4) ${i * 0.1}s forwards`,
+                willChange: "transform",
+                ["--tx" as string]: "left" in pos ? pos.left : pos.right,
+                ["--ty" as string]: pos.top,
+              }}
+            />
           ))}
-
-        {isTransforming && showLevelDown &&
-          CLOUD_PUFF_POSITIONS.map((pos, i) => (
-            <div
-              key={i}
-              style={
-                {
-                  position: "absolute",
-                  top: "30%",
-                  left: "50%",
-                  fontSize: "2vmin",
-                  animation: `cloudPuff 0.8s ease-out ${i * 0.1}s forwards`,
-                  "--tx": pos.tx,
-                  "--ty": pos.ty,
-                  pointerEvents: "none",
-                } as CSSProperties
-              }
-            >
-              💨
-            </div>
-          ))}
-
-        {!isTransforming && reaction === "celebrate" && (
-          <>
-            <span className="coin-particle" style={{ left: "-2vmin", top: "0" }}>
-              🪙
-            </span>
-            <span
-              className="coin-particle"
-              style={{ left: "50%", top: "-1vmin", animationDelay: "0.15s" }}
-            >
-              🪙
-            </span>
-            <span
-              className="coin-particle"
-              style={{ right: "-2vmin", top: "0", animationDelay: "0.3s" }}
-            >
-              🪙
-            </span>
-          </>
-        )}
-        {!isTransforming && reaction === "sad" && (
-          <>
-            <span className="money-particle" style={{ left: "20%", top: "50%" }}>
-              💸
-            </span>
-            <span
-              className="money-particle"
-              style={{ right: "20%", top: "50%", animationDelay: "0.2s" }}
-            >
-              💸
-            </span>
-          </>
-        )}
       </div>
+
+      <div
+        className="michi-shadow"
+        style={{
+          width: "8vmin",
+          height: "1vmin",
+          background: "#000",
+          opacity: 0.3,
+          marginTop: "0.5vmin",
+          willChange: "transform",
+        }}
+      />
       <div
         style={{
-          width: 80,
-          height: 8,
+          width: "10vmin",
+          height: "1vmin",
           background: "#4ade80",
-          border: "2px solid #000",
-          margin: "4px auto 0",
+          borderTop: "0.3vmin solid #000",
+          marginTop: "0.2vmin",
         }}
       />
     </div>
