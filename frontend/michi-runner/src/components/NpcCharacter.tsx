@@ -189,7 +189,7 @@ export function NpcCharacter({ cityIndex, bgOffset, slot }: NpcCharacterProps) {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  const npcType = cityIndex % 5;
+  const npcType = cityIndex % 5; // 5 tipos de NPC
   const worldX = 400 + slot * 550 + cityIndex * 100;
   const screenPx = ((worldX - bgOffset * 1) % (innerWidth + 400)) - 50;
   const screenVw = (screenPx / innerWidth) * 100;

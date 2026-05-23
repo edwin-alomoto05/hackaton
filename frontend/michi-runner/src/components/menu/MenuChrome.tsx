@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import { CITIES } from "../../constants/runner";
+import { QUITO_PLACES } from "../../constants/runner";
 import { MichiLogoSprite } from "../MichiLogoSprite";
 
 const MENU_LARGE_STARS = [
@@ -23,11 +23,11 @@ const MENU_MEDIUM_STARS = [
 ].map((s, i) => ({ ...s, delay: `${-(i * 0.2)}s` }));
 
 const CITY_DOTS = [
-  { top: "25%", left: "38%", delay: "0s", color: CITIES[0].color },
-  { top: "55%", left: "28%", delay: "-0.3s", color: CITIES[1].color },
-  { top: "60%", left: "42%", delay: "-0.6s", color: CITIES[2].color },
-  { top: "58%", left: "22%", delay: "-0.9s", color: CITIES[3].color },
-  { top: "18%", left: "35%", delay: "-1.2s", color: CITIES[4].color },
+  { top: "25%", left: "38%", delay: "0s", color: QUITO_PLACES[0].color },
+  { top: "55%", left: "28%", delay: "-0.3s", color: QUITO_PLACES[1].color },
+  { top: "60%", left: "42%", delay: "-0.6s", color: QUITO_PLACES[2].color },
+  { top: "58%", left: "22%", delay: "-0.9s", color: QUITO_PLACES[3].color },
+  { top: "18%", left: "35%", delay: "-1.2s", color: QUITO_PLACES[4].color },
 ] as const;
 
 const ROUTE_SEGMENTS: { top: string; left: string; width: string; rotate: string }[] = [

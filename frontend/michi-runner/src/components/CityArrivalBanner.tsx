@@ -1,4 +1,4 @@
-import { CITIES } from "../constants/runner";
+import { QUITO_PLACES } from "../constants/runner";
 import type { GameMode } from "../types/game";
 
 interface CityArrivalBannerProps {
@@ -10,7 +10,9 @@ interface CityArrivalBannerProps {
 export function CityArrivalBanner({ isVisible, cityIndex, mode }: CityArrivalBannerProps) {
   if (!isVisible) return null;
 
-  const city = CITIES[cityIndex] ?? CITIES[0];
+  const safeIndex =
+    ((cityIndex % QUITO_PLACES.length) + QUITO_PLACES.length) % QUITO_PLACES.length;
+  const city = QUITO_PLACES[safeIndex];
 
   return (
     <div
@@ -68,7 +70,7 @@ export function CityArrivalBanner({ isVisible, cityIndex, mode }: CityArrivalBan
                 marginTop: "0.5vmin",
               }}
             >
-              {city.altitude} s.n.m.
+              {city.description}
             </div>
           </div>
         </div>

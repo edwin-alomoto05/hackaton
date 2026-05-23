@@ -1,4 +1,4 @@
-import { CITIES } from "../constants/runner";
+import { QUITO_PLACES } from "../constants/runner";
 import type { GameMode, TransitionPhase } from "../types/game";
 
 interface CityTransitionProps {
@@ -16,7 +16,9 @@ export function CityTransition({
   if (transitionPhase === null) return null;
 
   const destIndex = nextCityIndex ?? 0;
-  const destCity = CITIES[destIndex] ?? CITIES[0];
+  const safeIndex =
+    ((destIndex % QUITO_PLACES.length) + QUITO_PLACES.length) % QUITO_PLACES.length;
+  const destCity = QUITO_PLACES[safeIndex];
 
   if (transitionPhase === "fadeOut") {
     return (
@@ -77,7 +79,7 @@ export function CityTransition({
             opacity: 0.7,
           }}
         >
-          {destCity.altitude} s.n.m.
+          {destCity.description}
         </div>
         <div
           style={{

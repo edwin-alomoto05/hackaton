@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { CITIES, getMichiInfo, MODE_CONFIG } from "../constants/runner";
+import { QUITO_PLACES, getMichiInfo, MODE_CONFIG } from "../constants/runner";
 import type { Choice, GameMode, GameType, PlayerState } from "../types/game";
 
 interface HUDProps {
@@ -41,8 +41,10 @@ export function HUD({
   showHistory,
   onToggleHistory,
 }: HUDProps) {
-  const currentCity = CITIES[cityIndex] ?? CITIES[0];
-  const nextCity = CITIES[(cityIndex + 1) % CITIES.length];
+  const safeIndex =
+    ((cityIndex % QUITO_PLACES.length) + QUITO_PLACES.length) % QUITO_PLACES.length;
+  const currentCity = QUITO_PLACES[safeIndex];
+  const nextCity = QUITO_PLACES[(safeIndex + 1) % QUITO_PLACES.length];
   const initial = MODE_CONFIG[mode].initialBalance;
   const balanceColor = balance > initial ? "#4ade80" : balance < initial ? "#f87171" : "#f1f5f9";
   const barColor = balance >= initial ? "#4ade80" : "#f87171";

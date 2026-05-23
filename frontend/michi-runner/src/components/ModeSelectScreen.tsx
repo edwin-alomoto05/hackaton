@@ -50,6 +50,7 @@ function ModeCard({
         if (e.key === "Enter" || e.key === " ") onSelect();
       }}
       style={{
+        animationDelay: isPrimaria ? "0.2s" : "0.3s",
         flex: 1,
         minWidth: "28vmin",
         maxWidth: "42vmin",

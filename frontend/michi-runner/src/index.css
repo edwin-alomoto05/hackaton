@@ -1388,3 +1388,321 @@ body {
   background: #0f0f1a;
   border: 0.3vmin solid #4ade80;
 }
+
+/* ── Menu screens (Prompt 5) ── */
+@keyframes slideFromTop {
+  0% {
+    transform: translateY(-5vmin);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes cityDot {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.5;
+  }
+}
+@keyframes cardFlipIn {
+  0% {
+    transform: rotateY(90deg) scale(0.8);
+    opacity: 0;
+  }
+  60% {
+    transform: rotateY(-5deg) scale(1.02);
+    opacity: 1;
+  }
+  80% {
+    transform: rotateY(2deg) scale(0.99);
+  }
+  100% {
+    transform: rotateY(0deg) scale(1);
+    opacity: 1;
+  }
+}
+@keyframes digitReveal {
+  0% {
+    transform: translateY(-2vmin);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(0.3vmin);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes ghostPulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+@keyframes ghostReveal {
+  0% {
+    opacity: 0.3;
+    filter: grayscale(1);
+  }
+  50% {
+    opacity: 0.8;
+    filter: grayscale(0.5);
+  }
+  100% {
+    opacity: 1;
+    filter: grayscale(0);
+  }
+}
+@keyframes dotBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+    background: #27272a;
+  }
+  50% {
+    transform: translateY(-1vmin);
+    background: #fde047;
+  }
+}
+@keyframes errorEmojiBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1vmin);
+  }
+}
+.menu-header-slide {
+  animation: slideFromTop 0.4s steps(8) forwards;
+  will-change: transform;
+}
+.city-dot-pulse {
+  animation: cityDot 1.5s steps(2) infinite;
+  will-change: transform;
+}
+.menu-emoji-idle {
+  display: inline-block;
+  animation: michiIdle 2s steps(4) infinite;
+  will-change: transform;
+}
+.step-dot-blink {
+  animation: blink 0.8s steps(1) infinite;
+}
+.game-type-card-flip {
+  opacity: 0;
+  animation: cardFlipIn 0.5s steps(10) forwards;
+  will-change: transform;
+}
+.digit-reveal-slot {
+  animation: digitReveal 0.3s steps(6) forwards;
+  will-change: transform;
+}
+.ghost-pulse-michi {
+  animation: ghostPulse 1.5s steps(2) infinite;
+}
+.ghost-reveal-michi {
+  animation: ghostReveal 0.5s steps(8) forwards;
+}
+.lobby-dot-bounce {
+  animation: dotBounce 0.8s steps(2) infinite;
+  will-change: transform;
+}
+.lobby-create-btn {
+  animation: btnAttention 2s steps(4) infinite;
+  will-change: transform;
+}
+.lobby-recommended-badge {
+  animation: btnAttention 2s steps(4) infinite;
+}
+.hud-shake-panel {
+  animation: hudShake 0.4s steps(8) forwards;
+  will-change: transform;
+}
+.error-emoji-bounce {
+  display: inline-block;
+  animation: errorEmojiBounce 0.6s steps(4) infinite;
+  will-change: transform;
+}
+
+/* ── Leaderboard + Disconnected (Prompt 6) ── */
+@keyframes spotlightFlicker {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+@keyframes podiumRise {
+  0% {
+    transform: translateY(5vmin);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(-0.5vmin);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes rayRotate {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+@keyframes michiOrbit {
+  0% {
+    transform: rotate(0deg) translateX(3vmin) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(3vmin) rotate(-360deg);
+  }
+}
+@keyframes signalWave {
+  0%,
+  100% {
+    opacity: 1;
+    border-top-color: #4ade80;
+  }
+  50% {
+    opacity: 0.2;
+    border-top-color: #f87171;
+  }
+}
+@keyframes dishSway {
+  0%,
+  100% {
+    transform: rotateZ(-30deg);
+  }
+  50% {
+    transform: rotateZ(-25deg);
+  }
+}
+@keyframes sandFall {
+  0%,
+  100% {
+    clip-path: polygon(10% 0%, 90% 0%, 60% 100%, 40% 100%);
+  }
+  50% {
+    clip-path: polygon(30% 0%, 70% 0%, 55% 100%, 45% 100%);
+  }
+}
+@keyframes separatorBlink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+@keyframes signalLost {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-15deg);
+  }
+  75% {
+    transform: rotate(15deg);
+  }
+}
+.stadium-spotlight {
+  animation: spotlightFlicker 2s steps(2) infinite;
+}
+.podium-rays {
+  animation: rayRotate 3s steps(8) infinite linear;
+}
+.podium-rise {
+  opacity: 0;
+  animation: podiumRise 0.5s steps(10) forwards;
+  will-change: transform;
+}
+.podium-rise-first {
+  animation: podiumRise 0.6s steps(12) forwards;
+}
+.michi-orbit-runner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  animation: michiOrbit 1s steps(8) infinite linear;
+  will-change: transform;
+}
+.signal-lost-emoji {
+  display: inline-block;
+  animation: signalLost 1s steps(4) infinite;
+  will-change: transform;
+}
+.signal-wave-arc {
+  animation: signalWave 1.5s steps(3) infinite;
+}
+.dish-sway {
+  animation: dishSway 3s steps(6) infinite;
+}
+.sand-fall-top {
+  animation: sandFall 3s steps(6) infinite;
+}
+.michi-sad-slow .michi-sad-sprite {
+  animation: michiSad 2s steps(4) infinite;
+  will-change: transform;
+}
+.disconnect-scanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(255, 255, 255, 0.01) 3px,
+    rgba(255, 255, 255, 0.01) 4px
+  );
+}
+.disconnect-sep-0 {
+  background: #fde047;
+  animation: separatorBlink 1s steps(1) infinite;
+}
+.disconnect-sep-1 {
+  background: #27272a;
+  animation: separatorBlink 1s steps(1) infinite;
+  animation-delay: 0.5s;
+}
+.disconnect-score-saved {
+  animation: rowReveal 0.3s steps(4) forwards;
+  animation-delay: 1s;
+}
+.disconnect-motivation {
+  animation: rowReveal 0.3s steps(4) forwards;
+  animation-delay: 1.5s;
+}
+.disconnect-btn-primary {
+  opacity: 0;
+  animation: btnDropIn 0.3s steps(6) forwards;
+  animation-delay: 2s;
+}
+.disconnect-btn-secondary {
+  opacity: 0;
+  animation: btnDropIn 0.3s steps(6) forwards;
+  animation-delay: 2.2s;
+}

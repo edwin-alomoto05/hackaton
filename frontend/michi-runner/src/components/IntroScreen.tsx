@@ -48,7 +48,7 @@ const SMALL_STARS: { top: string; left: string; delay: string }[] = [
 const ORBIT_DELAYS = ["0s", "-0.75s", "-1.5s", "-2.25s"];
 
 const MARQUEE_TEXT =
-  "QUITO → GUAYAQUIL → CUENCA → SALINAS → OTAVALO    ·    ·    ·    APRENDE FINANZAS    ·    ·    ·    JUEGA CON UN AMIGO    ·    ·    ·    TOMA BUENAS DECISIONES    ·    ·    ·    ";
+  "BASÍLICA → PLAZA GRANDE → LA RONDA → LA CAROLINA → MERCADO CENTRAL    ·    ·    ·    APRENDE FINANZAS    ·    ·    ·    JUEGA CON UN AMIGO    ·    ·    ·    TOMA BUENAS DECISIONES    ·    ·    ·    ";
 
 function CornerDecor({
   position,

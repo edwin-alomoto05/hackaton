@@ -3,62 +3,64 @@ import type { Dilemma, GameMode } from "../types/game";
 export const GAME_DURATION_S = 60;
 export const DILEMMA_INTERVAL_MS = 8000;
 export const BG_SPEED = 2.5;
-export const CITY_DURATION_S = 12;
+export const PLACE_DURATION_S = 10;
+export const CITY_DURATION_S = PLACE_DURATION_S;
 
-export const CITIES = [
+/** Lugares de Quito con imagen de fondo (5 activos; sin Panecillo, Mitad del Mundo ni Teleférico). */
+export const QUITO_PLACES = [
   {
     index: 0,
-    name: "QUITO",
-    emoji: "🏔️",
-    altitude: "2850m",
-    color: "#60a5fa",
+    name: "BASÍLICA",
+    emoji: "⛪",
+    description: "Basílica del Voto Nacional",
+    color: "#fde047",
     fact: {
-      primaria: "¡Quito está muy alto en las montañas!",
-      secundaria: "Quito es la capital más alta del mundo",
+      primaria: "¡La Basílica es la iglesia más grande del Ecuador!",
+      secundaria: "Construida en 1892, es Patrimonio Cultural de Quito",
     },
   },
   {
     index: 1,
-    name: "GUAYAQUIL",
-    emoji: "🌊",
-    altitude: "4m",
-    color: "#fb923c",
+    name: "PLAZA GRANDE",
+    emoji: "🏛️",
+    description: "Plaza de la Independencia",
+    color: "#60a5fa",
     fact: {
-      primaria: "¡Guayaquil tiene el río más grande!",
-      secundaria: "Puerto principal de comercio del Ecuador",
+      primaria: "¡Aquí nació el Ecuador como país libre!",
+      secundaria: "Centro histórico y sede del gobierno ecuatoriano",
     },
   },
   {
     index: 2,
-    name: "CUENCA",
-    emoji: "🏛️",
-    altitude: "2560m",
-    color: "#4ade80",
+    name: "LA RONDA",
+    emoji: "🎨",
+    description: "Calle La Ronda",
+    color: "#fb923c",
     fact: {
-      primaria: "¡Cuenca tiene catedrales muy bonitas!",
-      secundaria: "Patrimonio Cultural de la Humanidad",
+      primaria: "¡La calle más colorida y artística de Quito!",
+      secundaria: "Centro cultural bohemio del centro histórico",
     },
   },
   {
     index: 3,
-    name: "SALINAS",
-    emoji: "🏖️",
-    altitude: "2m",
-    color: "#fde047",
+    name: "LA CAROLINA",
+    emoji: "🌳",
+    description: "Parque La Carolina",
+    color: "#86efac",
     fact: {
-      primaria: "¡En Salinas hay playa y olas!",
-      secundaria: "Principal balneario del Ecuador",
+      primaria: "¡El parque más grande de Quito para jugar!",
+      secundaria: "Pulmón verde de 64 hectáreas en el norte de Quito",
     },
   },
   {
     index: 4,
-    name: "OTAVALO",
-    emoji: "🌺",
-    altitude: "2530m",
-    color: "#a78bfa",
+    name: "MERCADO CENTRAL",
+    emoji: "🛒",
+    description: "Mercado Central de Quito",
+    color: "#fbbf24",
     fact: {
-      primaria: "¡En Otavalo venden artesanías de colores!",
-      secundaria: "Mercado artesanal más famoso de Sudamérica",
+      primaria: "¡Aquí puedes encontrar toda la comida típica del Ecuador!",
+      secundaria: "Mercado histórico con los mejores platos tradicionales",
     },
   },
 ] as const;

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   BG_SPEED,
-  CITIES,
-  CITY_DURATION_S,
+  QUITO_PLACES,
+  PLACE_DURATION_S,
   DILEMMAS,
   getComboConfig,
   DILEMMA_INTERVAL_MS,
@@ -538,15 +538,15 @@ export function useRunnerLoop(
 
         const progress = Math.min(
           100,
-          (elapsedInCityRef.current / CITY_DURATION_S) * 100,
+          (elapsedInCityRef.current / PLACE_DURATION_S) * 100,
         );
         const roundedProgress = Math.round(progress);
 
         if (
-          elapsedInCityRef.current >= CITY_DURATION_S &&
+          elapsedInCityRef.current >= PLACE_DURATION_S &&
           !isTransitioningRef.current
         ) {
-          const nextCity = (cityIndexRef.current + 1) % CITIES.length;
+          const nextCity = (cityIndexRef.current + 1) % QUITO_PLACES.length;
           elapsedInCityRef.current = 0;
           isTransitioningRef.current = true;
           setState((prev) => ({

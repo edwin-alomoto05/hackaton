@@ -390,6 +390,7 @@ export default function App() {
         <DisconnectedScreen
           reason={state.disconnectReason}
           rivalName={state.rival?.player_name}
+          mode={state.mode ?? undefined}
           onRetry={handleDisconnectedRetry}
           onExit={handleRestart}
         />
