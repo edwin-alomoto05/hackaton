@@ -1,485 +1,267 @@
-import type { CSSProperties } from "react";
-import type { GameMode, MichiReaction } from "../types/game";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useLayoutEffect,
+  type CSSProperties,
+} from "react";
+import { BENI_SPRITES, type BeniAnimation } from "../constants/sprites";
+import runningSprite from "../assets/animation/running.png";
 
-interface MichiSpriteProps {
-  emoji: string;
-  isRunning: boolean;
-  level: 1 | 2 | 3;
-  reaction: MichiReaction;
-  mode: GameMode;
+interface Props {
+  reaction: "run" | "celebrate" | "sad" | "curious" | "idle";
   isTransforming: boolean;
   showLevelUp: boolean;
   showLevelDown: boolean;
-  previousLevel: 1 | 2 | 3;
+  level: 1 | 2 | 3;
+  size?: string;
+  /** En menús/intro: sin posición absoluta de gameplay */
+  embedded?: boolean;
 }
 
-const PX = "1.2vmin";
+const REACTION_MAP: Record<Props["reaction"], BeniAnimation> = {
+  run: "running",
+  celebrate: "celebration",
+  sad: "sadness",
+  curious: "interesting",
+  idle: "breathing",
+};
 
-function Block({
-  style,
-  className,
-}: {
-  style: CSSProperties;
-  className?: string;
-}) {
-  return (
-    <div
-      className={className}
-      style={{
-        position: "absolute",
-        boxSizing: "border-box",
-        ...style,
-      }}
-    />
-  );
+const frameSizeCache: Record<string, number> = {};
+
+function frameHeightKey(src: string): string {
+  return `${src}_h`;
 }
 
-function MichiHead({ curious, sad }: { curious?: boolean; sad?: boolean }) {
-  const headRotate = curious ? "15deg" : sad ? "-15deg" : "0deg";
-  return (
-    <div
-      style={{
-        position: "relative",
-        width: `calc(${PX} * 8)`,
-        height: `calc(${PX} * 7)`,
-        transform: `rotateZ(${headRotate})`,
-        transformOrigin: "bottom center",
-      }}
-    >
-      <Block
-        style={{
-          left: `calc(${PX} * 2)`,
-          top: 0,
-          width: `calc(${PX} * 2)`,
-          height: `calc(${PX} * 2)`,
-          background: "#f4a460",
-        }}
-      />
-      <Block
-        style={{
-          right: `calc(${PX} * 2)`,
-          top: 0,
-          width: `calc(${PX} * 2)`,
-          height: `calc(${PX} * 2)`,
-          background: "#f4a460",
-        }}
-      />
-      <Block
-        style={{
-          left: `calc(${PX} * 2.5)`,
-          top: `calc(${PX} * 0.5)`,
-          width: PX,
-          height: PX,
-          background: "#ff8c69",
-        }}
-      />
-      <Block
-        style={{
-          right: `calc(${PX} * 2.5)`,
-          top: `calc(${PX} * 0.5)`,
-          width: PX,
-          height: PX,
-          background: "#ff8c69",
-        }}
-      />
-      <Block
-        style={{
-          left: 0,
-          top: `calc(${PX} * 2)`,
-          width: `calc(${PX} * 8)`,
-          height: `calc(${PX} * 5)`,
-          background: "#f4a460",
-        }}
-      />
-      {!sad && (
-        <>
-          <Block
-            style={{
-              left: `calc(${PX} * 2)`,
-              top: `calc(${PX} * 3)`,
-              width: curious ? `calc(${PX} * 2)` : `calc(${PX} * 2)`,
-              height: curious ? `calc(${PX} * 3)` : `calc(${PX} * 2)`,
-              background: "#1a1a1a",
-            }}
-          />
-          <Block
-            style={{
-              left: `calc(${PX} * 2.8)`,
-              top: `calc(${PX} * 3.2)`,
-              width: PX,
-              height: PX,
-              background: "#fff",
-            }}
-          />
-          <Block
-            style={{
-              right: `calc(${PX} * 2)`,
-              top: `calc(${PX} * 3)`,
-              width: `calc(${PX} * 2)`,
-              height: curious ? `calc(${PX} * 3)` : `calc(${PX} * 2)`,
-              background: "#1a1a1a",
-            }}
-          />
-          <Block
-            style={{
-              right: `calc(${PX} * 2.8)`,
-              top: `calc(${PX} * 3.2)`,
-              width: PX,
-              height: PX,
-              background: "#fff",
-            }}
-          />
-        </>
-      )}
-      {sad && (
-        <>
-          <Block
-            style={{
-              left: `calc(${PX} * 2)`,
-              top: `calc(${PX} * 3.5)`,
-              width: `calc(${PX} * 2)`,
-              height: PX,
-              background: "#1a1a1a",
-            }}
-          />
-          <Block
-            style={{
-              right: `calc(${PX} * 2)`,
-              top: `calc(${PX} * 3.5)`,
-              width: `calc(${PX} * 2)`,
-              height: PX,
-              background: "#1a1a1a",
-            }}
-          />
-          <Block
-            style={{
-              left: `calc(${PX} * 3)`,
-              top: `calc(${PX} * 5)`,
-              width: `calc(${PX} * 2)`,
-              height: PX,
-              background: "#8b4513",
-            }}
-          />
-        </>
-      )}
-      {!sad && (
-        <Block
-          style={{
-            left: `calc(${PX} * 3)`,
-            top: `calc(${PX} * 5)`,
-            width: `calc(${PX} * 2)`,
-            height: PX,
-            background: "#ff8c69",
-          }}
-        />
-      )}
-      <Block
-        style={{
-          left: 0,
-          top: `calc(${PX} * 4)`,
-          width: `calc(${PX} * 3)`,
-          height: PX,
-          background: "#f4a460",
-        }}
-      />
-      <Block
-        style={{
-          right: 0,
-          top: `calc(${PX} * 4)`,
-          width: `calc(${PX} * 3)`,
-          height: PX,
-          background: "#f4a460",
-        }}
-      />
-    </div>
-  );
+function wrapperStyle(embedded: boolean): CSSProperties {
+  return {
+    position: embedded ? "relative" : "absolute",
+    bottom: embedded ? undefined : "18%",
+    left: embedded ? undefined : "12%",
+    zIndex: embedded ? undefined : 8,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  };
 }
 
-function MichiBody({ level }: { level: 1 | 2 | 3 }) {
-  if (level === 1) {
-    return (
-      <div style={{ position: "relative", width: `calc(${PX} * 6)`, height: `calc(${PX} * 5)` }}>
-        <Block
-          style={{
-            inset: 0,
-            width: `calc(${PX} * 6)`,
-            height: `calc(${PX} * 5)`,
-            background: "#d4843a",
-          }}
-        />
-        <Block
-          style={{
-            left: `calc(${PX} * 2)`,
-            top: `calc(${PX} * 1.5)`,
-            width: `calc(${PX} * 2)`,
-            height: `calc(${PX} * 2)`,
-            background: "#888",
-          }}
-        />
-        <Block
-          style={{
-            right: `calc(${PX} * 1)`,
-            top: 0,
-            width: `calc(${PX} * 2)`,
-            height: PX,
-            background: "#d4843a",
-          }}
-        />
-        <Block
-          style={{
-            right: `calc(${PX} * 1.5)`,
-            top: `calc(${PX} * 1.5)`,
-            width: `calc(${PX} * 2)`,
-            height: PX,
-            background: "#1a1a1a",
-          }}
-        />
-      </div>
-    );
-  }
-  if (level === 3) {
-    return (
-      <div style={{ position: "relative", width: `calc(${PX} * 6)`, height: `calc(${PX} * 5)` }}>
-        <Block
-          style={{
-            left: 0,
-            top: `calc(${PX} * 2)`,
-            width: `calc(${PX} * 6)`,
-            height: `calc(${PX} * 3)`,
-            background: "#1a1a2e",
-          }}
-        />
-        <Block
-          style={{
-            left: 0,
-            top: 0,
-            width: `calc(${PX} * 6)`,
-            height: `calc(${PX} * 2)`,
-            background: "#f4a460",
-          }}
-        />
-        <Block
-          style={{
-            left: `calc(${PX} * 2.5)`,
-            top: `calc(${PX} * 2)`,
-            width: PX,
-            height: `calc(${PX} * 2)`,
-            background: "#cc0000",
-          }}
-        />
-        <Block
-          style={{
-            left: PX,
-            top: PX,
-            width: PX,
-            height: PX,
-            background: "#ffd700",
-          }}
-        />
-      </div>
-    );
-  }
-  return (
-    <div style={{ position: "relative", width: `calc(${PX} * 6)`, height: `calc(${PX} * 5)` }}>
-      <Block
-        style={{
-          inset: 0,
-          width: `calc(${PX} * 6)`,
-          height: `calc(${PX} * 5)`,
-          background: "#f4a460",
-        }}
-      />
-      <Block
-        style={{
-          left: 0,
-          bottom: 0,
-          width: `calc(${PX} * 6)`,
-          height: `calc(${PX} * 2)`,
-          background: "#2255aa",
-        }}
-      />
-      <Block
-        style={{
-          left: `calc(${PX} * 2.5)`,
-          bottom: `calc(${PX} * 0.5)`,
-          width: PX,
-          height: PX,
-          background: "#1a3a8a",
-        }}
-      />
-    </div>
-  );
-}
-
-const STAR_POSITIONS = [
-  { left: "-3vmin", top: "-2vmin" },
-  { left: "3vmin", top: "-3vmin" },
-  { right: "-3vmin", top: "-2vmin" },
-  { left: "0", top: "-4vmin" },
-] as const;
-
-export function MichiSprite({
-  emoji: _emoji,
-  isRunning,
-  level,
+export default function MichiSprite({
   reaction,
-  mode: _mode,
   isTransforming,
   showLevelUp,
   showLevelDown,
-  previousLevel: _previousLevel,
-}: MichiSpriteProps) {
-  void _emoji;
-  void _mode;
-  void _previousLevel;
-  void showLevelUp;
-  void showLevelDown;
+  level,
+  size = "var(--michi-size)",
+  embedded = false,
+}: Props) {
+  const [currentFrame, setCurrentFrame] = useState(0);
+  const [frameWidth, setFrameWidth] = useState<number | null>(null);
+  const [frameHeight, setFrameHeight] = useState<number | null>(null);
+  const [renderScale, setRenderScale] = useState(1);
+  const intervalRef = useRef<number | null>(null);
+  const frameRef = useRef(0);
+  const viewportRef = useRef<HTMLDivElement>(null);
 
-  const curious = reaction === "curious";
-  const sad = reaction === "sad";
-  const celebrate = reaction === "celebrate";
-  const running = reaction === "run" && isRunning && !isTransforming;
+  const animationKey: BeniAnimation = isTransforming
+    ? showLevelUp
+      ? "levelUp"
+      : showLevelDown
+        ? "dropLevel"
+        : REACTION_MAP[reaction]
+    : REACTION_MAP[reaction];
 
-  let containerClass = "";
-  if (isTransforming) {
-    containerClass = showLevelUp ? "michi-level-up" : "michi-level-down";
-  } else if (running) {
-    containerClass = "michi-run-sprite";
-  } else if (celebrate) {
-    containerClass = "michi-celebrate-sprite";
-  } else if (sad) {
-    containerClass = "michi-sad-sprite";
-  } else if (curious) {
-    containerClass = "michi-curious-sprite";
-  }
+  const sprite = BENI_SPRITES[animationKey];
 
-  let levelFilter = "none";
-  if (!isTransforming) {
-    if (level === 1) levelFilter = "brightness(0.75) saturate(0.9)";
-    if (level === 3) levelFilter = "drop-shadow(0 0 0.8vmin #fde047)";
-  }
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => {
+      console.log("=== BENI SPRITE DIMENSIONS ===");
+      console.log("running.png:");
+      console.log("  naturalWidth:", img.naturalWidth);
+      console.log("  naturalHeight:", img.naturalHeight);
+      console.log("  frameWidth (÷4):", img.naturalWidth / 4);
+      console.log("  frameHeight:", img.naturalHeight);
+    };
+    img.src = runningSprite;
+  }, []);
+
+  useEffect(() => {
+    if (frameSizeCache[sprite.src] !== undefined) {
+      setFrameWidth(frameSizeCache[sprite.src]);
+      setFrameHeight(frameSizeCache[frameHeightKey(sprite.src)] ?? null);
+      return;
+    }
+
+    const img = new Image();
+    img.onload = () => {
+      const fw = Math.floor(img.naturalWidth / sprite.frames);
+      const fh = img.naturalHeight;
+
+      console.log(`Sprite: ${animationKey}`);
+      console.log(`Total width: ${img.naturalWidth}`);
+      console.log(`Frame width: ${fw}`);
+      console.log(`Frame height: ${fh}`);
+
+      frameSizeCache[sprite.src] = fw;
+      frameSizeCache[frameHeightKey(sprite.src)] = fh;
+      setFrameWidth(fw);
+      setFrameHeight(fh);
+    };
+    img.onerror = () => {
+      console.error(`Error cargando: ${sprite.src}`);
+      frameSizeCache[sprite.src] = 64;
+      frameSizeCache[frameHeightKey(sprite.src)] = 64;
+      setFrameWidth(64);
+      setFrameHeight(64);
+    };
+    img.src = sprite.src;
+  }, [sprite.src, sprite.frames, animationKey]);
+
+  useLayoutEffect(() => {
+    if (!frameHeight || !viewportRef.current) return;
+    const nextScale = viewportRef.current.clientHeight / frameHeight;
+    setRenderScale(nextScale > 0 ? nextScale : 1);
+  }, [frameHeight, size, frameWidth]);
+
+  const startLoop = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    frameRef.current = 0;
+    setCurrentFrame(0);
+
+    intervalRef.current = setInterval(() => {
+      frameRef.current = (frameRef.current + 1) % sprite.frames;
+      setCurrentFrame(frameRef.current);
+    }, 1000 / sprite.fps) as unknown as number;
+  }, [sprite.frames, sprite.fps]);
+
+  useEffect(() => {
+    startLoop();
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [startLoop, animationKey]);
+
+  const levelFilter =
+    level === 1
+      ? "brightness(0.7) grayscale(0.3)"
+      : level === 3
+        ? "drop-shadow(0 0 0.8vmin #fde047)"
+        : "none";
+
+  const activeFilter = isTransforming
+    ? showLevelUp
+      ? "drop-shadow(0 0 2vmin #fde047) brightness(1.3)"
+      : "brightness(0.5) grayscale(0.5)"
+    : levelFilter;
+
+  const scaledFrameWidth = frameWidth ? frameWidth * renderScale : null;
+  const scaledSheetWidth = scaledFrameWidth
+    ? scaledFrameWidth * sprite.frames
+    : null;
 
   return (
-    <div
-      style={{
-        position: "relative",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-      }}
-    >
-      <div
-        className={containerClass}
-        style={{
-          position: "relative",
-          filter: sad ? "brightness(0.7) grayscale(0.4)" : levelFilter,
-          willChange: "transform",
-        }}
-      >
-        <div
-          style={{
-            position: "relative",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
-          <MichiHead curious={curious} sad={sad} />
-          <div style={{ marginTop: `calc(${PX} * -0.5)` }}>
-            <MichiBody level={level} />
-          </div>
-          <div
-            className={running ? "michi-legs-run" : undefined}
-            style={{
-              position: "relative",
-              width: `calc(${PX} * 6)`,
-              height: `calc(${PX} * 3)`,
-              marginTop: `calc(${PX} * -0.5)`,
-            }}
-          >
-            <Block
-              className="michi-leg-left"
-              style={{
-                left: `calc(${PX} * 1)`,
-                bottom: 0,
-                width: PX,
-                height: `calc(${PX} * 3)`,
-                background: "#f4a460",
-                transformOrigin: "top center",
-              }}
-            />
-            <Block
-              className="michi-leg-right"
-              style={{
-                right: `calc(${PX} * 1)`,
-                bottom: 0,
-                width: PX,
-                height: `calc(${PX} * 3)`,
-                background: "#f4a460",
-                transformOrigin: "top center",
-              }}
-            />
-          </div>
-          <div
-            className="michi-tail"
-            style={{
-              position: "absolute",
-              right: `calc(${PX} * -1)`,
-              bottom: `calc(${PX} * 2)`,
-              width: PX,
-              height: `calc(${PX} * 4)`,
-              background: "#f4a460",
-              transformOrigin: "bottom center",
-              transform: curious
-                ? "rotateZ(-45deg)"
-                : sad
-                  ? "rotateZ(70deg)"
-                  : undefined,
-              willChange: "transform",
-            }}
-          />
-        </div>
-
-        {celebrate &&
-          STAR_POSITIONS.map((pos, i) => (
+    <div style={wrapperStyle(embedded)}>
+      {isTransforming && showLevelUp && (
+        <>
+          {[
+            { top: "-30%", left: "10%", delay: "0s" },
+            { top: "-30%", left: "60%", delay: "0.1s" },
+            { top: "20%", left: "-20%", delay: "0.15s" },
+            { top: "20%", left: "80%", delay: "0.2s" },
+            { top: "60%", left: "5%", delay: "0.05s" },
+          ].map((p, i) => (
             <div
               key={i}
               style={{
                 position: "absolute",
-                left: "left" in pos ? pos.left : undefined,
-                right: "right" in pos ? pos.right : undefined,
-                top: pos.top,
-                width: "1.5vmin",
-                height: "1.5vmin",
-                background: "#ffd700",
-                border: "0.15vmin solid #000",
-                animation: `starBurst 0.8s steps(4) ${i * 0.1}s forwards`,
-                willChange: "transform",
-                ["--tx" as string]: "left" in pos ? pos.left : pos.right,
-                ["--ty" as string]: pos.top,
+                top: p.top,
+                left: p.left,
+                fontSize: "2vmin",
+                animation: `starBurst 0.8s ease-out ${p.delay} forwards`,
+                pointerEvents: "none",
               }}
-            />
+            >
+              ⭐
+            </div>
           ))}
+        </>
+      )}
+
+      {isTransforming && showLevelDown && (
+        <>
+          {[
+            { top: "0%", left: "20%", delay: "0s" },
+            { top: "0%", left: "50%", delay: "0.1s" },
+            { top: "20%", left: "35%", delay: "0.15s" },
+          ].map((p, i) => (
+            <div
+              key={i}
+              style={{
+                position: "absolute",
+                top: p.top,
+                left: p.left,
+                fontSize: "1.8vmin",
+                animation: `cloudPuff 0.8s ease-out ${p.delay} forwards`,
+                pointerEvents: "none",
+              }}
+            >
+              💨
+            </div>
+          ))}
+        </>
+      )}
+
+      <div
+        ref={viewportRef}
+        key={animationKey}
+        style={{
+          width: size,
+          height: size,
+          overflow: "hidden",
+          position: "relative",
+          filter: activeFilter,
+          willChange: "transform",
+          flexShrink: 0,
+        }}
+      >
+        <img
+          src={sprite.src}
+          alt="Beni"
+          style={{
+            position: "absolute",
+            top: "50%",
+            transform: "translateY(-50%)",
+            left: scaledFrameWidth
+              ? `-${currentFrame * scaledFrameWidth}px`
+              : `${-currentFrame * 100}%`,
+            height: scaledFrameWidth && frameHeight ? `${frameHeight * renderScale}px` : "100%",
+            width: scaledSheetWidth ? `${scaledSheetWidth}px` : `${sprite.frames * 100}%`,
+            maxWidth: "none",
+            imageRendering: "pixelated",
+            userSelect: "none",
+            pointerEvents: "none",
+            willChange: "left",
+          }}
+          draggable={false}
+        />
       </div>
 
       <div
-        className="michi-shadow"
         style={{
-          width: "8vmin",
-          height: "1vmin",
+          width: "70%",
+          height: "0.6vmin",
           background: "#000",
-          opacity: 0.3,
-          marginTop: "0.5vmin",
+          opacity: 0.2,
+          marginTop: "0.3vmin",
+          borderRadius: 0,
           willChange: "transform",
-        }}
-      />
-      <div
-        style={{
-          width: "10vmin",
-          height: "1vmin",
-          background: "#4ade80",
-          borderTop: "0.3vmin solid #000",
-          marginTop: "0.2vmin",
+          animation: "shadowPulse 0.4s steps(2) infinite",
         }}
       />
     </div>

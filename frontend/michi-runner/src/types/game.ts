@@ -145,4 +145,7 @@ export interface RunnerState {
   leaderboardError: string | null;
   leaderboardFilter: LeaderboardFilter;
   showHistory: boolean;
+  npcX: number;
+  npcVisible: boolean;
+  npcApproachProgress: number;
 }

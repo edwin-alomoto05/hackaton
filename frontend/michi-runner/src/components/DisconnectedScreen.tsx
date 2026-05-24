@@ -1,5 +1,4 @@
-import type { GameMode } from "../types/game";
-import { MichiSprite } from "./MichiSprite";
+import MichiSprite from "./MichiSprite";
 import { TypeWriter } from "./ui/TypeWriter";
 
 interface DisconnectedScreenProps {
@@ -7,7 +6,6 @@ interface DisconnectedScreenProps {
   onRetry: () => void;
   onExit: () => void;
   rivalName?: string;
-  mode?: GameMode;
 }
 
 const STATIC_STARS = [
@@ -172,7 +170,6 @@ export function DisconnectedScreen({
   onRetry,
   onExit,
   rivalName,
-  mode = "secundaria",
 }: DisconnectedScreenProps) {
   const isRivalLeft = reason === "rival_left";
   const subtitle = isRivalLeft
@@ -226,19 +223,15 @@ export function DisconnectedScreen({
             overflow: "hidden",
           }}
         >
-          <div style={{ transform: "scale(0.55)", transformOrigin: "center bottom" }}>
-            <MichiSprite
-              emoji=""
-              isRunning={false}
-              level={1}
-              reaction="sad"
-              mode={mode}
-              isTransforming={false}
-              showLevelUp={false}
-              showLevelDown={false}
-              previousLevel={1}
-            />
-          </div>
+          <MichiSprite
+          reaction="sad"
+          isTransforming={false}
+          showLevelUp={false}
+          showLevelDown={false}
+          level={1}
+          size="12vmin"
+          embedded
+        />
         </div>
 
         <h2

@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import type { GameMode, GameType } from "../types/game";
-import { MichiSprite } from "./MichiSprite";
+import MichiSprite from "./MichiSprite";
+import { CountdownCinematicBackground } from "./menu/MenuCinematicLayers";
 
 interface CountdownScreenProps {
   value: number | null;
@@ -10,9 +11,6 @@ interface CountdownScreenProps {
   mode: GameMode;
   michiLevel?: 1 | 2 | 3;
 }
-
-const NUMBER_SHADOW =
-  "-0.5vmin -0.5vmin 0 #000, 0.5vmin -0.5vmin 0 #000, -0.5vmin 0.5vmin 0 #000, 0.5vmin 0.5vmin 0 #000, -1vmin 0 0 #000, 1vmin 0 0 #000, 0 -1vmin 0 #000, 0 1vmin 0 #000";
 
 function getNumberColor(v: number): string {
   if (v === 3) return "#f87171";
@@ -95,12 +93,10 @@ function ImpactParticles({
 function VsPanel({
   playerName,
   rivalName,
-  mode,
   michiLevel,
 }: {
   playerName: string;
   rivalName?: string;
-  mode: GameMode;
   michiLevel: 1 | 2 | 3;
 }) {
   return (
@@ -113,16 +109,7 @@ function VsPanel({
         zIndex: 2,
       }}
     >
-      <div
-        style={{
-          background: "#1a1a2e",
-          border: "0.4vmin solid #a78bfa",
-          boxShadow: "0.4vmin 0.4vmin 0 #000",
-          padding: "1.5vmin 2.5vmin",
-          textAlign: "center",
-          minWidth: "15vmin",
-        }}
-      >
+      <div className="countdown-vs-card countdown-vs-card--player">
         <div
           style={{
             height: "8vmin",
@@ -132,19 +119,15 @@ function VsPanel({
             overflow: "hidden",
           }}
         >
-          <div style={{ transform: "scale(0.55)", transformOrigin: "center" }}>
-            <MichiSprite
-              emoji=""
-              isRunning={false}
-              level={michiLevel}
-              reaction="run"
-              mode={mode}
-              isTransforming={false}
-              showLevelUp={false}
-              showLevelDown={false}
-              previousLevel={michiLevel}
-            />
-          </div>
+          <MichiSprite
+          reaction="run"
+          isTransforming={false}
+          showLevelUp={false}
+          showLevelDown={false}
+          level={michiLevel}
+          size="8vmin"
+          embedded
+        />
         </div>
         <div
           style={{
@@ -179,16 +162,7 @@ function VsPanel({
         VS
       </div>
 
-      <div
-        style={{
-          background: "#1a1a2e",
-          border: "0.4vmin solid #60a5fa",
-          boxShadow: "0.4vmin 0.4vmin 0 #000",
-          padding: "1.5vmin 2.5vmin",
-          textAlign: "center",
-          minWidth: "15vmin",
-        }}
-      >
+      <div className="countdown-vs-card countdown-vs-card--rival">
         <div
           style={{
             height: "8vmin",
@@ -199,19 +173,15 @@ function VsPanel({
             transform: "scaleX(-1)",
           }}
         >
-          <div style={{ transform: "scale(0.55)", transformOrigin: "center" }}>
-            <MichiSprite
-              emoji=""
-              isRunning={false}
-              level={2}
-              reaction="run"
-              mode={mode}
-              isTransforming={false}
-              showLevelUp={false}
-              showLevelDown={false}
-              previousLevel={2}
-            />
-          </div>
+          <MichiSprite
+          reaction="run"
+          isTransforming={false}
+          showLevelUp={false}
+          showLevelDown={false}
+          level={2}
+          size="8vmin"
+          embedded
+        />
         </div>
         <div
           style={{
@@ -237,78 +207,31 @@ function VsPanel({
   );
 }
 
-function ProgressBars({ value }: { value: number | null }) {
-  const bars = [
-    { label: "3", color: "#f87171", threshold: 3 },
-    { label: "2", color: "#fde047", threshold: 2 },
-    { label: "1", color: "#4ade80", threshold: 1 },
-  ] as const;
+function CountdownSubtleFX({ value }: { value: number | null }) {
+  const accent =
+    value === null ? "#4ade80" : value === 3 ? "#f87171" : value === 2 ? "#fde047" : "#4ade80";
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "1vmin",
-        marginTop: "3vmin",
-        width: "40vmin",
-        zIndex: 2,
-      }}
-    >
-      {bars.map((bar) => {
-        const filled = value === null || value <= bar.threshold;
-        return (
-          <div
-            key={bar.label}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "1vmin",
-            }}
-          >
-            <span
-              style={{
-                fontFamily: '"Press Start 2P", monospace',
-                fontSize: "1.2vmin",
-                color: bar.color,
-                width: "2.5vmin",
-                flexShrink: 0,
-              }}
-            >
-              {bar.label}
-            </span>
-            <div
-              style={{
-                flex: 1,
-                height: "1.5vmin",
-                background: "#1a1a2e",
-                border: "0.3vmin solid #000",
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  height: "100%",
-                  width: filled ? "100%" : "0%",
-                  background: bar.color,
-                  transition: "width 0.9s steps(9)",
-                }}
-              />
-            </div>
-            <span
-              style={{
-                fontFamily: '"Press Start 2P", monospace',
-                fontSize: "1.2vmin",
-                color: "#4ade80",
-                width: "2vmin",
-                opacity: filled ? 1 : 0,
-              }}
-            >
-              ✓
-            </span>
-          </div>
-        );
-      })}
+    <div className="countdown-subtle-fx" aria-hidden>
+      <div
+        className="countdown-subtle-glow-line"
+        style={{
+          background: `linear-gradient(90deg, transparent, ${accent}, transparent)`,
+          boxShadow: `0 0 2vmin ${accent}`,
+        }}
+      />
+      {[0, 1, 2, 3, 4].map((i) => (
+        <span
+          key={i}
+          className="countdown-subtle-spark"
+          style={{
+            left: `${18 + i * 16}%`,
+            animationDelay: `${i * 0.12}s`,
+            background: i % 2 === 0 ? accent : "#fde047",
+          }}
+        />
+      ))}
+      {value === null && <div className="countdown-subtle-go-ring" />}
     </div>
   );
 }
@@ -327,18 +250,9 @@ export function CountdownScreen({
   return (
     <div
       key={`shake-${shakeKey}`}
-      className="screen-shake"
-      style={{
-        position: "absolute",
-        inset: 0,
-        zIndex: 10,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        overflow: "hidden",
-      }}
+      className="countdown-screen-premium screen-shake"
     >
+      <CountdownCinematicBackground />
       <div key={vignetteKey} style={getVignetteStyle(value)} />
 
       <div
@@ -372,7 +286,6 @@ export function CountdownScreen({
           <VsPanel
             playerName={playerName}
             rivalName={rivalName}
-            mode={mode}
             michiLevel={michiLevel}
           />
         )}
@@ -391,104 +304,37 @@ export function CountdownScreen({
         )}
 
         {value !== null ? (
-          <div
-            style={{
-              position: "relative",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              minHeight: "40vmin",
-            }}
-          >
+          <div className="countdown-hero-wrap">
             <ImpactParticles color={getNumberColor(value)} count={8} distance="8vmin" />
             <div
               key={value}
-              className="number-impact"
-              style={{
-                fontFamily: '"Press Start 2P", monospace',
-                fontSize: "35vmin",
-                lineHeight: 1,
-                color: getNumberColor(value),
-                textShadow: NUMBER_SHADOW,
-              }}
+              className={`number-impact countdown-number-neon countdown-number-neon--${value}`}
             >
               {value}
             </div>
+            <CountdownSubtleFX value={value} />
           </div>
         ) : (
-          <div
-            style={{
-              position: "relative",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              textAlign: "center",
-            }}
-          >
+          <div className="countdown-hero-wrap countdown-hero-wrap--go">
+            <div className="countdown-go-burst" aria-hidden />
+            <div className="countdown-energy-sweep" aria-hidden />
             <ImpactParticles color="#4ade80" count={16} distance="15vmin" />
-            <div
-              style={{
-                fontFamily: '"Press Start 2P", monospace',
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                lineHeight: 1.2,
-              }}
-            >
-              <span style={{ fontSize: "3vmin", color: "#4ade80" }}>¡</span>
-              <span
-                className="go-explosion-text"
-                style={{
-                  fontSize: "12vmin",
-                  color: "#fff",
-                  textShadow: NUMBER_SHADOW,
-                }}
-              >
-                CORRE
-              </span>
-              <span style={{ fontSize: "3vmin", color: "#4ade80" }}>!</span>
+            <div className="countdown-go-text">
+              <span className="countdown-go-punct">¡</span>
+              <span className="go-explosion-text countdown-go-mega">CORRE</span>
+              <span className="countdown-go-punct">!</span>
             </div>
-            <div
-              className="countdown-michi-run"
-              style={{
-                marginTop: "2vmin",
-                transform: "scale(0.85)",
-                transformOrigin: "center top",
-              }}
-            >
-              <MichiSprite
-                emoji=""
-                isRunning
-                level={michiLevel}
-                reaction="run"
-                mode={mode}
-                isTransforming={false}
-                showLevelUp={false}
-                showLevelDown={false}
-                previousLevel={michiLevel}
-              />
-            </div>
+            <CountdownSubtleFX value={value} />
           </div>
         )}
 
         {value !== null && (
-          <div
-            style={{
-              fontFamily: '"Press Start 2P", monospace',
-              fontSize: "1.6vmin",
-              color: "#94a3b8",
-              marginTop: "2vmin",
-              textAlign: "center",
-              zIndex: 2,
-            }}
-          >
+          <p className="countdown-mode-hint">
             {mode === "primaria"
               ? "¡ATRAPA LAS BUENAS DECISIONES!"
               : "¡DEMUESTRA TU INTELIGENCIA FINANCIERA!"}
-          </div>
+          </p>
         )}
-
-        <ProgressBars value={value} />
       </div>
     </div>
   );

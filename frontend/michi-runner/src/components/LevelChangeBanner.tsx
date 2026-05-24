@@ -1,3 +1,4 @@
+import MichiSprite from "./MichiSprite";
 import { MICHI_LEVELS } from "../constants/runner";
 import type { GameMode } from "../types/game";
 
@@ -65,7 +66,15 @@ export function LevelChangeBanner({
                 padding: "1vmin 2vmin",
               }}
             >
-              <span style={{ fontSize: "5vmin" }}>{levelData?.emoji}</span>
+              <MichiSprite
+                reaction="idle"
+                isTransforming
+                showLevelUp={showLevelUp}
+                showLevelDown={showLevelDown}
+                level={newLevel}
+                size="8vmin"
+                embedded
+              />
               <div>
                 <div
                   style={{
@@ -117,7 +126,15 @@ export function LevelChangeBanner({
                 padding: "1vmin 2vmin",
               }}
             >
-              <span style={{ fontSize: "5vmin" }}>{levelData?.emoji}</span>
+              <MichiSprite
+                reaction="idle"
+                isTransforming
+                showLevelUp={showLevelUp}
+                showLevelDown={showLevelDown}
+                level={newLevel}
+                size="8vmin"
+                embedded
+              />
               <div>
                 <div
                   style={{

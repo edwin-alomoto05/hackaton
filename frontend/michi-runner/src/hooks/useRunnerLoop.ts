@@ -9,6 +9,12 @@ import {
   GAME_DURATION_S,
   getMichiLevel,
   MODE_CONFIG,
+  NPC_START_SCREEN_X,
+  NPC_ARRIVE_SCREEN_X,
+  NPC_TRIGGER_SCROLL,
+  CITY_TRANSITION_FADE_MS,
+  CITY_TRANSITION_FLASH_MS,
+  CITY_TRANSITION_DONE_MS,
 } from "../constants/runner";
 import type {
   Choice,
@@ -91,6 +97,9 @@ const INITIAL_STATE: RunnerState = {
   leaderboardError: null,
   leaderboardFilter: "all",
   showHistory: false,
+  npcX: NPC_START_SCREEN_X,
+  npcVisible: false,
+  npcApproachProgress: 0,
 };
 
 const GOOD_CHOICE_IDS = [
@@ -219,6 +228,14 @@ export function useRunnerLoop(
   const startDilemmaTimerRef = useRef<() => void>(() => {});
   const previousLevelRef = useRef<1 | 2 | 3>(1);
   const levelTransformTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const npcXRef = useRef(NPC_START_SCREEN_X);
+  const npcVisibleRef = useRef(false);
+  const npcSpawnOffsetRef = useRef(0);
+  const npcArrivedRef = useRef(false);
+  const pendingDilemmaRef = useRef<Dilemma | null>(null);
+  const michiReactionRef = useRef<MichiReaction>("run");
+  const npcApproachProgressRef = useRef(0);
+  const npcArrivalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     stateRef.current = state;
@@ -232,8 +249,8 @@ export function useRunnerLoop(
     balanceRef.current = state.balance;
     happinessRef.current = state.happiness;
     dilemmaIndexRef.current = state.dilemmaIndex;
-    bgOffsetRef.current = state.bgOffset;
     choicesIdsRef.current = state.choicesMade.map((c) => c.id);
+    michiReactionRef.current = state.michiReaction;
   }, [state]);
 
   useEffect(() => {
@@ -310,10 +327,42 @@ export function useRunnerLoop(
     }, 2500);
   }, [clearCityArrivalTimer]);
 
+  const clearNpcArrivalTimer = useCallback(() => {
+    if (npcArrivalTimerRef.current !== null) {
+      clearTimeout(npcArrivalTimerRef.current);
+      npcArrivalTimerRef.current = null;
+    }
+  }, []);
+
+  const clearNpcEncounter = useCallback(() => {
+    clearNpcArrivalTimer();
+    npcVisibleRef.current = false;
+    npcArrivedRef.current = false;
+    pendingDilemmaRef.current = null;
+    npcApproachProgressRef.current = 0;
+    npcXRef.current = NPC_START_SCREEN_X;
+    setState((prev) => ({
+      ...prev,
+      npcVisible: false,
+      npcApproachProgress: 0,
+      npcX: NPC_START_SCREEN_X,
+    }));
+  }, [clearNpcArrivalTimer]);
+
+  const isNpcEncounterActive = useCallback(() => {
+    return (
+      npcVisibleRef.current ||
+      npcArrivedRef.current ||
+      phaseRef.current === "decision" ||
+      pendingDilemmaRef.current !== null
+    );
+  }, []);
+
   const startCityTransition = useCallback(
     (nextCity: number) => {
       clearTransitionTimers();
       clearCityArrivalTimer();
+      clearNpcEncounter();
 
       setState((prev) => ({
         ...prev,
@@ -329,7 +378,7 @@ export function useRunnerLoop(
           cityProgress: 0,
           showCityArrival: true,
         }));
-      }, 500);
+      }, CITY_TRANSITION_FADE_MS);
 
       const t2 = setTimeout(() => {
         setState((prev) => ({
@@ -337,7 +386,7 @@ export function useRunnerLoop(
           transitionPhase: "fadeIn",
           showCityArrival: false,
         }));
-      }, 1000);
+      }, CITY_TRANSITION_FLASH_MS);
 
       const t3 = setTimeout(() => {
         isTransitioningRef.current = false;
@@ -347,11 +396,11 @@ export function useRunnerLoop(
           isTransitioning: false,
           nextCityIndex: null,
         }));
-      }, 1500);
+      }, CITY_TRANSITION_DONE_MS);
 
       transitionTimersRef.current = [t1, t2, t3];
     },
-    [clearTransitionTimers, clearCityArrivalTimer],
+    [clearTransitionTimers, clearCityArrivalTimer, clearNpcEncounter],
   );
 
   const clearConnectionTimers = useCallback(() => {
@@ -381,6 +430,7 @@ export function useRunnerLoop(
     clearChoiceFeedbackTimers();
     clearComboTimer();
     clearLevelTransformTimer();
+    clearNpcArrivalTimer();
     clearDilemmaCountdown();
     clearTransitionTimers();
     clearCityArrivalTimer();
@@ -404,6 +454,7 @@ export function useRunnerLoop(
     clearChoiceFeedbackTimers,
     clearComboTimer,
     clearLevelTransformTimer,
+    clearNpcArrivalTimer,
     clearDilemmaCountdown,
     clearTransitionTimers,
     clearCityArrivalTimer,
@@ -440,29 +491,39 @@ export function useRunnerLoop(
     }));
   }, [clearDilemmaCountdown]);
 
-  const showDilemma = useCallback(() => {
-    const mode = modeRef.current;
-    if (!mode || phaseRef.current !== "running") return;
+  const spawnNpcEncounter = useCallback(() => {
+    if (npcVisibleRef.current) return;
+    if (phaseRef.current !== "running") return;
+    if (isTransitioningRef.current) return;
+    if (isNpcEncounterActive()) return;
 
-    const idx = dilemmaIndexRef.current;
-    const dilemma = DILEMMAS[mode][idx];
-    if (!dilemma) {
-      if (dilemmaIntervalRef.current !== null) {
-        clearInterval(dilemmaIntervalRef.current);
-        dilemmaIntervalRef.current = null;
-      }
-      return;
-    }
+    const mode = modeRef.current ?? "secundaria";
+    const dilemmas = DILEMMAS[mode];
+    const idx = dilemmaIndexRef.current % dilemmas.length;
+    const dilemma = dilemmas[idx];
+    if (!dilemma) return;
 
-    lastCityTickRef.current = Date.now();
-    currentDilemmaRef.current = dilemma;
+    pendingDilemmaRef.current = dilemma;
+    npcSpawnOffsetRef.current = bgOffsetRef.current;
+    npcArrivedRef.current = false;
+    npcVisibleRef.current = true;
+    npcXRef.current = NPC_START_SCREEN_X;
+    npcApproachProgressRef.current = 0;
+
     setState((prev) => ({
       ...prev,
-      phase: "decision",
-      currentDilemma: dilemma,
+      npcX: NPC_START_SCREEN_X,
+      npcVisible: true,
+      npcApproachProgress: 0,
     }));
-    phaseRef.current = "decision";
-    startDilemmaTimerRef.current();
+  }, [isNpcEncounterActive]);
+
+  const npcScreenXFromProgress = useCallback((progress: number) => {
+    const t = Math.min(1, Math.max(0, progress));
+    return (
+      NPC_START_SCREEN_X +
+      (NPC_ARRIVE_SCREEN_X - NPC_START_SCREEN_X) * t
+    );
   }, []);
 
   const persistFinishGame = useCallback(async () => {
@@ -517,8 +578,65 @@ export function useRunnerLoop(
         !isTransitioningRef.current
       ) {
         bgOffsetRef.current += BG_SPEED;
-        const offset = bgOffsetRef.current % 800;
-        setState((prev) => ({ ...prev, bgOffset: offset }));
+        setState((prev) => ({ ...prev, bgOffset: bgOffsetRef.current }));
+      }
+
+      if (
+        npcVisibleRef.current &&
+        !npcArrivedRef.current &&
+        phaseRef.current === "running"
+      ) {
+        const scrolled = bgOffsetRef.current - npcSpawnOffsetRef.current;
+        const progress = Math.min(1, scrolled / NPC_TRIGGER_SCROLL);
+        const nextX = npcScreenXFromProgress(progress);
+
+        if (
+          progress !== npcApproachProgressRef.current ||
+          nextX !== npcXRef.current
+        ) {
+          npcApproachProgressRef.current = progress;
+          npcXRef.current = nextX;
+          setState((prev) => ({
+            ...prev,
+            npcApproachProgress: progress,
+            npcX: nextX,
+          }));
+        }
+
+        if (
+          scrolled >= NPC_TRIGGER_SCROLL * 0.7 &&
+          michiReactionRef.current !== "curious"
+        ) {
+          michiReactionRef.current = "curious";
+          setState((prev) => ({ ...prev, michiReaction: "curious" }));
+        }
+
+        if (scrolled >= NPC_TRIGGER_SCROLL) {
+          npcArrivedRef.current = true;
+          phaseRef.current = "decision";
+
+          clearNpcArrivalTimer();
+          npcArrivalTimerRef.current = setTimeout(() => {
+            npcArrivalTimerRef.current = null;
+            const pending = pendingDilemmaRef.current;
+            if (!pending) return;
+
+            npcVisibleRef.current = false;
+            pendingDilemmaRef.current = null;
+            currentDilemmaRef.current = pending;
+            lastCityTickRef.current = Date.now();
+
+            setState((prev) => ({
+              ...prev,
+              npcVisible: false,
+              npcApproachProgress: 1,
+              npcX: NPC_ARRIVE_SCREEN_X,
+              currentDilemma: pending,
+              phase: "decision",
+            }));
+            startDilemmaTimerRef.current();
+          }, 400);
+        }
       }
 
       if (rivalLastSeenRef.current !== null) {
@@ -534,7 +652,11 @@ export function useRunnerLoop(
         const now = Date.now();
         const delta = now - lastCityTickRef.current;
         lastCityTickRef.current = now;
-        elapsedInCityRef.current += delta / 1000;
+        const encounterActive = isNpcEncounterActive();
+
+        if (!encounterActive) {
+          elapsedInCityRef.current += delta / 1000;
+        }
 
         const progress = Math.min(
           100,
@@ -544,7 +666,7 @@ export function useRunnerLoop(
 
         if (
           elapsedInCityRef.current >= PLACE_DURATION_S &&
-          !isTransitioningRef.current
+          !encounterActive
         ) {
           const nextCity = (cityIndexRef.current + 1) % QUITO_PLACES.length;
           elapsedInCityRef.current = 0;
@@ -564,7 +686,7 @@ export function useRunnerLoop(
       rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
-  }, [startCityTransition]);
+  }, [startCityTransition, clearNpcArrivalTimer, npcScreenXFromProgress, isNpcEncounterActive]);
 
   const startCountdownRaf = useCallback(() => {
     if (rafRef.current === null) {
@@ -604,15 +726,24 @@ export function useRunnerLoop(
       cityIndex: 0,
       cityProgress: 0,
       showCityArrival: false,
+      npcX: NPC_START_SCREEN_X,
+      npcVisible: false,
+      npcApproachProgress: 0,
     }));
+
+    npcXRef.current = NPC_START_SCREEN_X;
+    npcVisibleRef.current = false;
+    npcArrivedRef.current = false;
+    npcSpawnOffsetRef.current = 0;
+    pendingDilemmaRef.current = null;
+    npcApproachProgressRef.current = 0;
+    michiReactionRef.current = "run";
 
     startRafLoop();
     showCityArrivalBanner();
 
     dilemmaIntervalRef.current = setInterval(() => {
-      if (phaseRef.current === "running" && !isTransitioningRef.current) {
-        showDilemma();
-      }
+      spawnNpcEncounter();
     }, DILEMMA_INTERVAL_MS);
 
     endTimeoutRef.current = setTimeout(() => {
@@ -650,7 +781,7 @@ export function useRunnerLoop(
     clearWaitingTimer,
     resetScoreSaved,
     handleGameTimerEnd,
-    showDilemma,
+    spawnNpcEncounter,
     startRafLoop,
     showCityArrivalBanner,
     sendPing,
@@ -959,12 +1090,21 @@ export function useRunnerLoop(
       if (!mode) return;
       if (phaseRef.current !== "decision") return;
 
+      npcVisibleRef.current = false;
+      npcArrivedRef.current = false;
+      npcSpawnOffsetRef.current = 0;
+      michiReactionRef.current = "run";
+      npcApproachProgressRef.current = 0;
+      pendingDilemmaRef.current = null;
+
       clearDilemmaCountdown();
       dilemmaPlayerChoseRef.current = true;
       setState((prev) => ({
         ...prev,
         dilemmaTimeLeft: 10,
         dilemmaTimedOut: false,
+        npcVisible: false,
+        npcApproachProgress: 0,
       }));
 
       clearChoiceFeedbackTimers();
@@ -1065,6 +1205,7 @@ export function useRunnerLoop(
         lastCityTickRef.current = Date.now();
         phaseRef.current = "running";
         dilemmaIndexRef.current += 1;
+        michiReactionRef.current = "run";
         setState((prev) => ({
           ...prev,
           michiReaction: "run",

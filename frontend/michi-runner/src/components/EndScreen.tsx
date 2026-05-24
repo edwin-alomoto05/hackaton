@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { END_MESSAGES, FINANCIAL_CONCEPTS, getMichiInfo, MODE_CONFIG } from "../constants/runner";
 import type { Choice, GameMode, GameType, PlayerState, RunnerState } from "../types/game";
-import { MichiSprite } from "./MichiSprite";
+import MichiSprite from "./MichiSprite";
 import { PixelConfetti } from "./ui/PixelConfetti";
 import { TypeWriter } from "./ui/TypeWriter";
 
@@ -96,42 +96,36 @@ function PixelTrophy() {
 
 function MiniMichi({
   level,
-  mode,
   reaction,
   mirror,
   className,
+  size = "10vmin",
 }: {
   level: 1 | 2 | 3;
-  mode: GameMode;
-  reaction: "run" | "sad" | "celebrate";
+  reaction: "run" | "sad" | "celebrate" | "curious" | "idle";
   mirror?: boolean;
   className?: string;
+  size?: string;
 }) {
   return (
     <div
       className={className}
       style={{
         transform: mirror ? "scaleX(-1)" : undefined,
-        height: "10vmin",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        overflow: "hidden",
       }}
     >
-      <div style={{ transform: "scale(0.5)", transformOrigin: "center" }}>
-        <MichiSprite
-          emoji=""
-          isRunning={reaction === "run"}
-          level={level}
-          reaction={reaction}
-          mode={mode}
-          isTransforming={false}
-          showLevelUp={false}
-          showLevelDown={false}
-          previousLevel={level}
-        />
-      </div>
+      <MichiSprite
+        reaction={reaction}
+        isTransforming={false}
+        showLevelUp={false}
+        showLevelDown={false}
+        level={level}
+        size={size}
+        embedded
+      />
     </div>
   );
 }
@@ -545,7 +539,7 @@ function ResultCard({
       >
         {title}
       </p>
-      <MiniMichi level={level} mode={mode} reaction={isWinner ? "celebrate" : "run"} />
+      <MiniMichi level={level} reaction={isWinner ? "celebrate" : "sad"} />
       <p
         style={{
           fontFamily: '"Press Start 2P", monospace',
@@ -672,7 +666,7 @@ function EndHeader({
         }}
       >
         <div className="michi-sad-sprite" style={{ display: "flex", justifyContent: "center" }}>
-          <MiniMichi level={1} mode={mode} reaction="sad" />
+          <MiniMichi level={1} reaction="sad" />
         </div>
         <h1
           className="end-game-over-blink"
@@ -723,10 +717,10 @@ function EndHeader({
           }}
         >
           <div className="handshake-michi">
-            <MiniMichi level={michiLevel} mode={mode} reaction="run" />
+            <MiniMichi level={michiLevel} reaction="run" />
           </div>
           <div className="handshake-michi" style={{ transform: "scaleX(-1)" }}>
-            <MiniMichi level={michiLevel} mode={mode} reaction="run" />
+            <MiniMichi level={michiLevel} reaction="run" />
           </div>
         </div>
         <h1
@@ -757,7 +751,7 @@ function EndHeader({
         zIndex: 2,
       }}
     >
-      <MiniMichi level={michiLevel} mode={mode} reaction="sad" />
+      <MiniMichi level={michiLevel} reaction="sad" />
       <h1
         style={{
           fontFamily: '"Press Start 2P", monospace',

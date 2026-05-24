@@ -3,7 +3,7 @@ import { MICHI_LEVELS, MODE_CONFIG } from "../constants/runner";
 import type { GameMode, LeaderboardEntry, LeaderboardFilter } from "../types/game";
 import { PodiumTop3 } from "./leaderboard/PodiumTop3";
 import { StadiumDecor } from "./leaderboard/StadiumDecor";
-import { MichiSprite } from "./MichiSprite";
+import MichiSprite from "./MichiSprite";
 import { PixelConfetti } from "./ui/PixelConfetti";
 import { TypeWriter } from "./ui/TypeWriter";
 
@@ -66,7 +66,7 @@ function HeaderTrophy() {
   );
 }
 
-function LoadingState({ mode }: { mode: GameMode }) {
+function LoadingState() {
   return (
     <div
       style={{
@@ -88,19 +88,15 @@ function LoadingState({ mode }: { mode: GameMode }) {
         }}
       >
         <div className="michi-orbit-runner">
-          <div style={{ transform: "scale(0.42)", transformOrigin: "center" }}>
-            <MichiSprite
-              emoji=""
-              isRunning
-              level={2}
-              reaction="run"
-              mode={mode}
-              isTransforming={false}
-              showLevelUp={false}
-              showLevelDown={false}
-              previousLevel={2}
-            />
-          </div>
+          <MichiSprite
+          reaction="run"
+          isTransforming={false}
+          showLevelUp={false}
+          showLevelDown={false}
+          level={2}
+          size="8vmin"
+          embedded
+        />
         </div>
       </div>
       <TypeWriter
@@ -272,7 +268,7 @@ export function LeaderboardScreen({
         ))}
       </div>
 
-      {loading && <LoadingState mode={mode} />}
+      {loading && <LoadingState />}
 
       {!loading && error && (
         <ErrorState error={error} onRetry={() => onFilterChange(filter)} />

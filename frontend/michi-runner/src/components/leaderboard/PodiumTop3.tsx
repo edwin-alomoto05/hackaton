@@ -1,6 +1,6 @@
 import { MODE_CONFIG } from "../../constants/runner";
 import type { GameMode, LeaderboardEntry } from "../../types/game";
-import { MichiSprite } from "../MichiSprite";
+import MichiSprite from "../MichiSprite";
 
 function truncateName(name: string, max = 10): string {
   return name.length > max ? `${name.slice(0, max)}…` : name;
@@ -8,12 +8,10 @@ function truncateName(name: string, max = 10): string {
 
 function PodiumMichi({
   level,
-  mode,
   scale,
   bounce,
 }: {
   level: 1 | 2 | 3;
-  mode: GameMode;
   scale: number;
   bounce?: boolean;
 }) {
@@ -31,15 +29,13 @@ function PodiumMichi({
     >
       <div style={{ transform: `scale(${scale})`, transformOrigin: "bottom center" }}>
         <MichiSprite
-          emoji=""
-          isRunning={false}
-          level={level}
           reaction="celebrate"
-          mode={mode}
           isTransforming={false}
           showLevelUp={false}
           showLevelDown={false}
-          previousLevel={level}
+          level={level}
+          size="10vmin"
+          embedded
         />
       </div>
     </div>
@@ -182,7 +178,6 @@ function PodiumSlot({
       )}
       <PodiumMichi
         level={entry.michi_level}
-        mode={mode}
         scale={configs.scale}
         bounce={place === 1}
       />

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { MODE_CONFIG } from "../constants/runner";
 import type { GameMode } from "../types/game";
-import { MichiSprite } from "./MichiSprite";
+import MichiSprite from "./MichiSprite";
 import { MenuPageLayout, StepIndicator } from "./menu/MenuChrome";
 
 interface ModeSelectScreenProps {
@@ -12,6 +12,13 @@ const PRIMARIA_PREVIEWS = [
   "Alcancía vs Dulces",
   "Ahorrar vs Pedir",
   "Regalo vs Gastar",
+];
+
+const CARD_PARTICLES = [
+  { top: "15%", left: "10%", delay: "0s" },
+  { top: "70%", left: "85%", delay: "-0.8s" },
+  { top: "40%", left: "90%", delay: "-1.4s" },
+  { top: "80%", left: "15%", delay: "-0.4s" },
 ];
 
 type HoveredMode = GameMode | null;
@@ -42,32 +49,21 @@ function ModeCard({
     <div
       role="button"
       tabIndex={0}
-      className={slideClass}
+      className={[
+        "mode-card-premium",
+        slideClass,
+        isPrimaria ? "mode-card-primaria" : "mode-card-secundaria",
+        isHovered ? "mode-card-premium--hover" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
       onClick={onSelect}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") onSelect();
       }}
-      style={{
-        animationDelay: isPrimaria ? "0.2s" : "0.3s",
-        flex: 1,
-        minWidth: "28vmin",
-        maxWidth: "42vmin",
-        background: isHovered ? (isPrimaria ? "#0a1a0a" : "#0a0a1a") : "#1a1a2e",
-        border: isHovered ? `0.5vmin solid ${accent}` : "0.4vmin solid #27272a",
-        boxShadow: isHovered ? `0.6vmin 0.6vmin 0 ${accent}` : "0.4vmin 0.4vmin 0 #000",
-        padding: "3vmin 2vmin",
-        cursor: "pointer",
-        transition: "background 0.05s steps(1), border 0.05s steps(1), box-shadow 0.05s steps(1)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: "1.5vmin",
-        position: "relative",
-        overflow: "hidden",
-        zIndex: 2,
-      }}
+      style={{ animationDelay: isPrimaria ? "0.2s" : "0.3s" }}
     >
       {isFlashing && (
         <div
@@ -82,76 +78,48 @@ function ModeCard({
         />
       )}
 
-      <div
-        style={{
-          position: "absolute",
-          top: "1vmin",
-          right: "1vmin",
-          background: accent,
-          color: "#000",
-          fontFamily: '"Press Start 2P", monospace',
-          fontSize: "0.9vmin",
-          padding: "0.3vmin 0.8vmin",
-          border: "0.2vmin solid #000",
-        }}
-      >
+      <div className="mode-card-neon-frame" aria-hidden />
+      <div className="mode-card-particles" aria-hidden>
+        {CARD_PARTICLES.map((p, i) => (
+          <span
+            key={i}
+            className="mode-card-particle"
+            style={{ top: p.top, left: p.left, animationDelay: p.delay }}
+          />
+        ))}
+      </div>
+
+      <div className="mode-card-age-badge" style={{ background: accent }}>
         {isPrimaria ? "6-11" : "12-17"}
       </div>
 
-      <div style={{ height: "12vmin", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ transform: "scale(0.7)", transformOrigin: "center" }}>
-          <MichiSprite
-            emoji=""
-            isRunning={false}
-            level={isPrimaria ? 1 : 2}
-            reaction={isHovered ? "celebrate" : "curious"}
-            mode={mode}
-            isTransforming={false}
-            showLevelUp={false}
-            showLevelDown={false}
-            previousLevel={isPrimaria ? 1 : 2}
-          />
-        </div>
+      <div className="mode-card-michi-wrap">
+        <div className="mode-card-michi-glow" aria-hidden />
+        <MichiSprite
+          reaction={isHovered ? "celebrate" : "curious"}
+          isTransforming={false}
+          showLevelUp={false}
+          showLevelDown={false}
+          level={isPrimaria ? 1 : 2}
+          size="12vmin"
+          embedded
+        />
       </div>
 
-      <div
-        className={isHovered ? "michi-celebrate-sprite" : "menu-emoji-idle"}
-        style={{ fontSize: "6vmin", lineHeight: 1 }}
-      >
+      <div className={`mode-card-emoji ${isHovered ? "michi-celebrate-sprite" : "menu-emoji-idle"}`}>
         {config.emoji}
       </div>
 
-      <div
-        style={{
-          fontFamily: '"Press Start 2P", monospace',
-          fontSize: "2.2vmin",
-          color: isHovered ? accent : "#f1f5f9",
-        }}
-      >
+      <div className="mode-card-label" style={{ color: isHovered ? accent : "#f1f5f9" }}>
         {config.label.toUpperCase()}
       </div>
 
-      <div
-        style={{
-          fontFamily: '"Press Start 2P", monospace',
-          fontSize: "1.1vmin",
-          color: "#94a3b8",
-        }}
-      >
-        {config.ages}
-      </div>
+      <div className="mode-card-ages">{config.ages}</div>
 
-      <div
-        style={{
-          width: "80%",
-          height: "0.2vmin",
-          background: isHovered ? accent : "#27272a",
-          transition: "background 0.05s steps(1)",
-        }}
-      />
+      <div className="mode-card-divider" style={{ background: isHovered ? accent : "#27272a" }} />
 
       {isHovered && isPrimaria ? (
-        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "0.6vmin" }}>
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "0.6vmin", zIndex: 1 }}>
           {PRIMARIA_PREVIEWS.map((line, i) => (
             <div
               key={line}
@@ -168,29 +136,17 @@ function ModeCard({
           ))}
         </div>
       ) : (
-        <div
-          style={{
-            fontFamily: '"Press Start 2P", monospace',
-            fontSize: "1.1vmin",
-            color: "#94a3b8",
-            textAlign: "center",
-            minHeight: "4vmin",
-          }}
-        >
+        <div className="mode-card-desc">
           {isPrimaria ? "Finanzas para niños" : "Finanzas para adolescentes"}
         </div>
       )}
 
       <div
+        className="mode-card-cta"
         style={{
-          fontFamily: '"Press Start 2P", monospace',
-          fontSize: "1.2vmin",
           background: isHovered ? accent : "transparent",
           color: isHovered ? "#000" : "#94a3b8",
-          border: "0.3vmin solid",
           borderColor: isHovered ? accent : "#27272a",
-          padding: "0.8vmin 2vmin",
-          transition: "all 0.05s steps(1)",
         }}
       >
         {isHovered ? "▶ SELECCIONAR" : "ELEGIR"}
@@ -210,32 +166,9 @@ export function ModeSelectScreen({ onSelect }: ModeSelectScreenProps) {
 
   return (
     <MenuPageLayout step={1} showMap>
-      <h2
-        style={{
-          fontFamily: '"Press Start 2P", monospace',
-          color: "#f1f5f9",
-          fontSize: "1.5vmin",
-          margin: "2vmin 0 3vmin",
-          zIndex: 2,
-          textAlign: "center",
-        }}
-      >
-        ¿QUIÉN VA A JUGAR?
-      </h2>
+      <h2 className="menu-screen-title">¿QUIÉN VA A JUGAR?</h2>
 
-      <div
-        style={{
-          display: "flex",
-          gap: "3vmin",
-          flexWrap: "wrap",
-          justifyContent: "center",
-          width: "100%",
-          maxWidth: "95vmin",
-          padding: "0 3vmin",
-          flex: 1,
-          alignItems: "center",
-        }}
-      >
+      <div className="menu-cards-row">
         <ModeCard
           mode="primaria"
           hoveredMode={hoveredMode}

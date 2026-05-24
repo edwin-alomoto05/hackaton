@@ -6,6 +6,20 @@ export const BG_SPEED = 2.5;
 export const PLACE_DURATION_S = 10;
 export const CITY_DURATION_S = PLACE_DURATION_S;
 
+/** Duración de cada fase del cambio de ciudad (ms). */
+export const CITY_TRANSITION_FADE_MS = 900;
+export const CITY_TRANSITION_FLASH_MS = 1800;
+export const CITY_TRANSITION_DONE_MS = 2700;
+
+/** Posición de Beni y encuentro con NPC (scroll del fondo). */
+export const BENI_POSITION_VW = 15;
+/** Donde aparece el NPC (lejos, derecha de pantalla). */
+export const NPC_START_SCREEN_X = 72;
+/** Donde queda el NPC al llegar Beni (junto a Beni). */
+export const NPC_ARRIVE_SCREEN_X = 28;
+/** Píxeles de scroll del fondo hasta el encuentro. */
+export const NPC_TRIGGER_SCROLL = 480;
+
 /** Lugares de Quito con imagen de fondo (5 activos; sin Panecillo, Mitad del Mundo ni Teleférico). */
 export const QUITO_PLACES = [
   {

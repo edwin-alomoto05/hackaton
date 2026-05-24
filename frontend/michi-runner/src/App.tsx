@@ -15,11 +15,12 @@ import { GameTypeSelectScreen } from "./components/GameTypeSelectScreen";
 import { HUD } from "./components/HUD";
 import { IntroScreen } from "./components/IntroScreen";
 import { LobbyScreen } from "./components/LobbyScreen";
-import { MichiSprite } from "./components/MichiSprite";
+import MichiSprite from "./components/MichiSprite";
 import { NpcCharacter } from "./components/NpcCharacter";
 import { ModeSelectScreen } from "./components/ModeSelectScreen";
 import { ScrollingBackground } from "./components/ScrollingBackground";
-import { getMichiInfo, MODE_CONFIG } from "./constants/runner";
+import { RunJuice } from "./components/RunJuice";
+import { getMichiInfo, MODE_CONFIG, QUITO_PLACES } from "./constants/runner";
 import { useRoom } from "./hooks/useRoom";
 import { useRunnerLoop } from "./hooks/useRunnerLoop";
 
@@ -138,6 +139,14 @@ export default function App() {
   const mode = state.mode;
   const gameType = state.gameType;
   const michiInfo = mode ? getMichiInfo(mode, state.michiLevel) : null;
+  const citySafeIndex =
+    ((state.cityIndex % QUITO_PLACES.length) + QUITO_PLACES.length) % QUITO_PLACES.length;
+  const currentCityColor = QUITO_PLACES[citySafeIndex].color;
+
+  const bgPaused =
+    state.phase === "decision" ||
+    state.phase === "countdown" ||
+    state.isTransitioning;
 
   const inGameCanvas =
     state.phase === "running" ||
@@ -209,16 +218,21 @@ export default function App() {
         >
           <ScrollingBackground
             offset={state.bgOffset}
-            isPaused={
-              state.phase === "decision" ||
-              state.phase === "countdown" ||
-              state.isTransitioning
-            }
+            isPaused={bgPaused}
             mode={mode}
             cityIndex={state.cityIndex}
             isTransitioning={state.isTransitioning}
             transitionPhase={state.transitionPhase}
           />
+          {(state.phase === "running" || state.phase === "decision") && (
+            <RunJuice
+              phase={state.phase}
+              isPaused={bgPaused}
+              comboCount={state.comboCount}
+              timeLeft={timeLeft}
+              cityColor={currentCityColor}
+            />
+          )}
           {(state.phase === "running" || state.phase === "decision") && (
             <CityTransition
               transitionPhase={state.transitionPhase}
@@ -253,25 +267,22 @@ export default function App() {
               />
             )}
             {(state.phase === "running" || state.phase === "decision") && (
-              <>
-                <NpcCharacter cityIndex={state.cityIndex} bgOffset={state.bgOffset} slot={0} />
-                <NpcCharacter cityIndex={state.cityIndex} bgOffset={state.bgOffset} slot={1} />
-              </>
+              <NpcCharacter
+                x={state.npcX}
+                npcType={state.cityIndex}
+                isVisible={state.npcVisible && !state.isTransitioning}
+                approachProgress={state.npcApproachProgress}
+                mode={mode}
+              />
             )}
             {state.phase !== "countdown" && (
-              <div style={{ position: "absolute", bottom: "15%", left: "15%", zIndex: 4 }}>
-                <MichiSprite
-                  emoji={michiInfo.emoji}
-                  isRunning={state.phase === "running" && !state.waitingForRival}
-                  level={state.michiLevel}
+              <MichiSprite
                   reaction={state.michiReaction}
-                  mode={mode}
                   isTransforming={state.isTransformingMichi}
                   showLevelUp={state.showLevelUp}
                   showLevelDown={state.showLevelDown}
-                  previousLevel={state.previousMichiLevel}
+                  level={state.michiLevel}
                 />
-              </div>
             )}
             {state.phase === "decision" &&
               state.currentDilemma &&
@@ -390,7 +401,6 @@ export default function App() {
         <DisconnectedScreen
           reason={state.disconnectReason}
           rivalName={state.rival?.player_name}
-          mode={state.mode ?? undefined}
           onRetry={handleDisconnectedRetry}
           onExit={handleRestart}
         />

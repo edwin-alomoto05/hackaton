@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { GameMode, JoinRoomError } from "../types/game";
-import { MichiSprite } from "./MichiSprite";
+import MichiSprite from "./MichiSprite";
 import { MenuPageLayout, StepIndicator } from "./menu/MenuChrome";
 
 const WAITING_SECONDS = 30;
@@ -106,20 +106,12 @@ function CodeDigit({
 }) {
   return (
     <div
-      className={revealed ? "digit-reveal-slot" : undefined}
-      style={{
-        width: "4vmin",
-        height: "5vmin",
-        background: "#0f0f1a",
-        border: `0.4vmin solid ${revealed ? "#fde047" : "#27272a"}`,
-        boxShadow: revealed ? "0.4vmin 0.4vmin 0 #fde047" : "0.4vmin 0.4vmin 0 #000",
-        fontFamily: '"Press Start 2P", monospace',
-        fontSize: "3vmin",
-        color: revealed ? "#fde047" : "#444",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
+      className={[
+        "lobby-code-digit",
+        revealed ? "digit-reveal-slot lobby-code-digit--live" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
       {char}
     </div>
@@ -127,12 +119,10 @@ function CodeDigit({
 }
 
 function WaitingScene({
-  mode,
   roomCode,
   rivalJoined,
   waitProgress,
 }: {
-  mode: GameMode;
   roomCode: string;
   rivalJoined: boolean;
   waitProgress: number;
@@ -141,17 +131,10 @@ function WaitingScene({
     waitProgress > 66 ? "#4ade80" : waitProgress > 33 ? "#fde047" : "#f87171";
 
   return (
-    <div style={{ width: "100%", textAlign: "center" }}>
-      <div
-        style={{
-          position: "relative",
-          height: "22vmin",
-          marginBottom: "2vmin",
-          display: "flex",
-          alignItems: "flex-end",
-          justifyContent: "center",
-        }}
-      >
+    <div className="waiting-scene-premium">
+      <div className="waiting-scene-arena">
+        <div className="waiting-pulse-ring" aria-hidden />
+        {!rivalJoined && <div className="waiting-spinner-arcade" aria-hidden />}
         <div style={{ position: "absolute", left: "15%", bottom: 0, textAlign: "center" }}>
           <div
             style={{
@@ -166,17 +149,15 @@ function WaitingScene({
           >
             YO
           </div>
-          <div style={{ transform: "scale(0.55)", transformOrigin: "bottom center" }}>
+          <div>
             <MichiSprite
-              emoji=""
-              isRunning={false}
-              level={1}
-              reaction="curious"
-              mode={mode}
+              reaction="idle"
               isTransforming={false}
               showLevelUp={false}
               showLevelDown={false}
-              previousLevel={1}
+              level={2}
+              size="12vmin"
+              embedded
             />
           </div>
         </div>
@@ -221,74 +202,43 @@ function WaitingScene({
           >
             ???
           </div>
-          <div
-            className={rivalJoined ? "ghost-reveal-michi" : "ghost-pulse-michi"}
-            style={{ transform: "scaleX(-1) scale(0.55)", transformOrigin: "bottom center" }}
-          >
+          <div style={{ transform: "scaleX(-1)", opacity: 0.3 }} className="ghost-reveal-michi">
             <MichiSprite
-              emoji=""
-              isRunning={false}
-              level={2}
-              reaction="curious"
-              mode={mode}
+              reaction="idle"
               isTransforming={false}
               showLevelUp={false}
               showLevelDown={false}
-              previousLevel={2}
+              level={2}
+              size="12vmin"
+              embedded
             />
           </div>
         </div>
       </div>
 
-      <div
-        style={{
-          fontFamily: '"Press Start 2P", monospace',
-          fontSize: "2vmin",
-          color: "#fde047",
-          letterSpacing: "0.5vmin",
-          marginBottom: "1vmin",
-        }}
-      >
-        {roomCode}
-      </div>
+      <div className="waiting-room-code">{roomCode}</div>
 
       <p
-        className={rivalJoined ? undefined : "blink"}
-        style={{
-          fontFamily: '"Press Start 2P", monospace',
-          fontSize: "1.2vmin",
-          color: "#94a3b8",
-          margin: "0 0 2vmin",
-        }}
+        className={[
+          "waiting-status-text",
+          rivalJoined ? "waiting-status-text--active" : "blink",
+        ]
+          .filter(Boolean)
+          .join(" ")}
       >
         {rivalJoined ? "¡Rival conectado!" : "Esperando rival..."}
       </p>
 
-      <div style={{ width: "60%", margin: "0 auto" }}>
-        <div
-          style={{
-            fontFamily: '"Press Start 2P", monospace',
-            fontSize: "0.9vmin",
-            color: "#94a3b8",
-            marginBottom: "0.5vmin",
-          }}
-        >
+      <div className="waiting-timer-bar-wrap">
+        <div className="waiting-timer-label">
           {WAITING_SECONDS}s para que llegue tu rival
         </div>
-        <div
-          style={{
-            height: "1.2vmin",
-            background: "#1a1a2e",
-            border: "0.3vmin solid #000",
-            overflow: "hidden",
-          }}
-        >
+        <div className="waiting-timer-bar">
           <div
+            className="waiting-timer-fill"
             style={{
-              height: "100%",
               width: `${waitProgress}%`,
               background: barColor,
-              transition: "width 1s steps(10), background 0.05s steps(1)",
             }}
           />
         </div>
@@ -405,46 +355,15 @@ export function LobbyScreen({
 
   return (
     <MenuPageLayout step={3}>
-      <div
-        style={{
-          display: "flex",
-          gap: "3vmin",
-          flexWrap: "wrap",
-          justifyContent: "center",
-          zIndex: 2,
-          maxWidth: "95vmin",
-          width: "100%",
-          padding: "2vmin 3vmin",
-          flex: 1,
-          alignItems: "flex-start",
-        }}
-      >
-        <div
-          className="px-card"
-          style={{
-            flex: "1 1 38vmin",
-            minHeight: "45vmin",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
-          <h3
-            style={{
-              fontFamily: '"Press Start 2P", monospace',
-              color: "#fde047",
-              fontSize: "1.2vmin",
-              margin: "0 0 2vmin",
-              alignSelf: "flex-start",
-            }}
-          >
-            CREAR SALA
-          </h3>
+      <div className="lobby-layout">
+        <div className="px-card lobby-panel-premium lobby-panel-create">
+          <div className="lobby-panel-inner">
+          <h3 className="lobby-panel-title lobby-panel-title-gold">CREAR SALA</h3>
 
           {!roomCode ? (
             <div style={{ textAlign: "center", flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
               <PixelCrown />
-              <button type="button" className="px-btn lobby-create-btn" onClick={onCreateRoom}>
+              <button type="button" className="px-btn lobby-create-btn lobby-create-btn-premium" onClick={onCreateRoom}>
                 CREAR SALA
               </button>
               <p
@@ -460,21 +379,13 @@ export function LobbyScreen({
             </div>
           ) : isWaiting ? (
             <WaitingScene
-              mode={mode}
               roomCode={roomCode}
               rivalJoined={rivalJoined}
               waitProgress={waitProgress}
             />
           ) : (
             <div style={{ textAlign: "center", width: "100%" }}>
-              <div
-                style={{
-                  display: "flex",
-                  gap: "1vmin",
-                  justifyContent: "center",
-                  marginBottom: "2vmin",
-                }}
-              >
+              <div className="lobby-code-display">
                 {displayDigits.map((digit, i) => (
                   <CodeDigit key={i} char={digit} revealed={i < revealedDigits} />
                 ))}
@@ -502,19 +413,12 @@ export function LobbyScreen({
               </button>
             </div>
           )}
+          </div>
         </div>
 
-        <div className="px-card" style={{ flex: "1 1 38vmin" }}>
-          <h3
-            style={{
-              fontFamily: '"Press Start 2P", monospace',
-              color: "#60a5fa",
-              fontSize: "1.2vmin",
-              margin: "0 0 2vmin",
-            }}
-          >
-            UNIRSE A SALA
-          </h3>
+        <div className="px-card lobby-panel-premium lobby-panel-join">
+          <div className="lobby-panel-inner">
+          <h3 className="lobby-panel-title lobby-panel-title-blue">UNIRSE A SALA</h3>
 
           {lobbyError !== null && (
             <div
@@ -721,6 +625,7 @@ export function LobbyScreen({
               "UNIRSE"
             )}
           </button>
+          </div>
         </div>
       </div>
 

@@ -27,7 +27,7 @@ export function CityTransition({
           position: "absolute",
           inset: 0,
           background: "#0f0f1a",
-          animation: "cityFadeOut 0.5s ease-in forwards",
+          animation: "cityFadeOut 0.9s ease-in forwards",
           zIndex: 5,
           pointerEvents: "none",
         }}
@@ -42,7 +42,7 @@ export function CityTransition({
           position: "absolute",
           inset: 0,
           background: destCity.color,
-          animation: "cityFlash 0.5s ease-out forwards",
+          animation: "cityFlash 0.9s ease-out forwards",
           zIndex: 5,
           pointerEvents: "none",
           display: "flex",
@@ -114,7 +114,7 @@ export function CityTransition({
           position: "absolute",
           inset: 0,
           background: "#0f0f1a",
-          animation: "cityFadeIn 0.5s ease-out forwards",
+          animation: "cityFadeIn 0.9s ease-out forwards",
           zIndex: 5,
           pointerEvents: "none",
         }}
