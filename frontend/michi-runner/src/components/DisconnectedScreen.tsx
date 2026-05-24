@@ -1,4 +1,5 @@
 import MichiSprite from "./MichiSprite";
+import { PremiumAmbient } from "./ui/PremiumAmbient";
 import { TypeWriter } from "./ui/TypeWriter";
 
 interface DisconnectedScreenProps {
@@ -183,32 +184,12 @@ export function DisconnectedScreen({
   ];
 
   return (
-    <div
-      style={{
-        position: "relative",
-        minHeight: "100vh",
-        width: "100%",
-        background: "#0f0f1a",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "3vmin",
-        overflow: "hidden",
-      }}
-    >
+    <div className="premium-disconnect-screen">
+      <PremiumAmbient variant={isRivalLeft ? "danger" : "gold"} sparkleCount={10} />
       <StaticStars />
       {isRivalLeft && <div className="disconnect-scanlines" />}
 
-      <div
-        className="px-card"
-        style={{
-          zIndex: 2,
-          maxWidth: "55vmin",
-          width: "100%",
-          textAlign: "center",
-          padding: "3vmin",
-        }}
-      >
+      <div className="premium-disconnect-card">
         <div style={{ marginBottom: "2vmin" }}>
           {isRivalLeft ? <AntennaIcon /> : <HourglassIcon />}
         </div>

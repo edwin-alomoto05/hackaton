@@ -5,6 +5,7 @@ import { PodiumTop3 } from "./leaderboard/PodiumTop3";
 import { StadiumDecor } from "./leaderboard/StadiumDecor";
 import MichiSprite from "./MichiSprite";
 import { PixelConfetti } from "./ui/PixelConfetti";
+import { PremiumAmbient } from "./ui/PremiumAmbient";
 import { TypeWriter } from "./ui/TypeWriter";
 
 interface LeaderboardScreenProps {
@@ -179,37 +180,15 @@ export function LeaderboardScreen({
     filter === "all" ? "TODOS" : filter === "single" ? "SOLO" : "VERSUS";
 
   return (
-    <div
-      style={{
-        position: "relative",
-        background: "#0f0f1a",
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        fontFamily: '"Press Start 2P", monospace',
-        overflow: "hidden",
-      }}
-    >
+    <div className="premium-leaderboard">
+      <PremiumAmbient variant="gold" sparkleCount={10} />
       <StadiumDecor />
 
-      <header
-        className="menu-header-slide"
-        style={{
-          background: "#1a1a2e",
-          borderBottom: "0.5vmin solid #fde047",
-          padding: "2vmin 3vmin",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexShrink: 0,
-          zIndex: 10,
-        }}
-      >
+      <header className="premium-leaderboard-header menu-header-slide">
         <div style={{ display: "flex", alignItems: "center", gap: "1.5vmin" }}>
           <HeaderTrophy />
           <div>
-            <div style={{ fontSize: "2.5vmin", color: "#fde047" }}>🏆 RANKING MUNDIAL</div>
+            <div className="premium-leaderboard-title">🏆 RANKING MUNDIAL</div>
             <div style={{ fontSize: "1vmin", color: "#94a3b8", marginTop: "0.5vmin" }}>
               {mode === "primaria" ? "MODO PRIMARIA 🐣" : "MODO SECUNDARIA 🎒"}
             </div>
@@ -325,28 +304,9 @@ export function LeaderboardScreen({
                 return (
                   <div
                     key={`${entry.rank}-${entry.player_name}-${listIndex}`}
-                    className="end-row-reveal"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "2vmin",
-                      padding: "1.5vmin 2vmin",
-                      marginBottom: "1vmin",
-                      background: isMe ? "#0a1a0a" : "#1a1a2e",
-                      border: isMe ? "0.4vmin solid #4ade80" : "0.3vmin solid #27272a",
-                      boxShadow: isMe ? "0.3vmin 0.3vmin 0 #4ade80" : "none",
-                    }}
+                    className={`end-row-reveal premium-leaderboard-row${isMe ? " premium-leaderboard-row--me" : ""}`}
                   >
-                    <div
-                      style={{
-                        fontSize: "2vmin",
-                        color: "#4a5568",
-                        minWidth: "5vmin",
-                        textAlign: "center",
-                      }}
-                    >
-                      #{entry.rank}
-                    </div>
+                    <div className="premium-leaderboard-rank">#{entry.rank}</div>
                     <div style={{ fontSize: "3vmin" }}>{michiEmoji}</div>
                     <div style={{ flex: 1 }}>
                       <div
@@ -424,19 +384,7 @@ export function LeaderboardScreen({
         </div>
       )}
 
-      <footer
-        style={{
-          borderTop: "0.3vmin solid #27272a",
-          padding: "2vmin 3vmin",
-          display: "flex",
-          gap: "2vmin",
-          justifyContent: "space-between",
-          alignItems: "center",
-          background: "#0a0a14",
-          flexShrink: 0,
-          zIndex: 10,
-        }}
-      >
+      <footer className="premium-leaderboard-footer">
         <div style={{ fontSize: "1vmin", color: "#444" }}>
           TOP 5 · {mode.toUpperCase()} · {filterLabel}
         </div>

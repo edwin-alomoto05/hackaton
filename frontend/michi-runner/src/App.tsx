@@ -12,6 +12,7 @@ import { ScreenFlash } from "./components/ScreenFlash";
 import { EndScreen } from "./components/EndScreen";
 import { LeaderboardScreen } from "./components/LeaderboardScreen";
 import { GameTypeSelectScreen } from "./components/GameTypeSelectScreen";
+import InstructionsScreen from "./components/InstructionsScreen";
 import { HUD } from "./components/HUD";
 import { IntroScreen } from "./components/IntroScreen";
 import { LobbyScreen } from "./components/LobbyScreen";
@@ -54,6 +55,7 @@ export default function App() {
     setPhase,
     selectMode,
     selectGameType,
+    goFromInstructions,
     setLobbyInfo,
     clearLobbyError,
     attemptJoinRoom,
@@ -131,10 +133,14 @@ export default function App() {
 
   const handleSelectGameType = useCallback(
     (type: Parameters<typeof selectGameType>[0]) => {
-      void selectGameType(type);
+      selectGameType(type);
     },
     [selectGameType],
   );
+
+  const handleInstructionsReady = useCallback(() => {
+    void goFromInstructions();
+  }, [goFromInstructions]);
 
   const mode = state.mode;
   const gameType = state.gameType;
@@ -174,6 +180,14 @@ export default function App() {
 
       {state.phase === "game_type_select" && mode && (
         <GameTypeSelectScreen mode={mode} onSelect={handleSelectGameType} />
+      )}
+
+      {state.phase === "instructions" && mode && gameType && (
+        <InstructionsScreen
+          mode={mode}
+          gameType={gameType}
+          onReady={handleInstructionsReady}
+        />
       )}
 
       {(state.phase === "lobby" || state.phase === "waiting") && mode && gameType === "multi" && (
@@ -372,13 +386,16 @@ export default function App() {
         </div>
       )}
 
-      {state.phase === "end" && gameType && (
+      {state.phase === "end" && gameType && mode && (
         <EndScreen
           state={state}
           rival={state.rival}
           gameType={gameType}
           onRestart={handleRestart}
           onViewLeaderboard={goToLeaderboard}
+          mode={mode}
+          balanceUnit={MODE_CONFIG[mode].balanceUnit}
+          choices={state.choicesMade}
         />
       )}
 

@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { MODE_CONFIG } from "../constants/runner";
 import type { Choice, Dilemma, GameMode } from "../types/game";
+import { PremiumAmbient } from "./ui/PremiumAmbient";
 
 interface DilemmaModalProps {
   dilemma: Dilemma;
@@ -11,6 +13,15 @@ interface DilemmaModalProps {
   dilemmaTimedOut: boolean;
 }
 
+const PARTICLE_POSITIONS = [
+  { top: "8%", left: "12%" },
+  { top: "15%", left: "88%" },
+  { top: "78%", left: "8%" },
+  { top: "82%", left: "92%" },
+  { top: "45%", left: "3%" },
+  { top: "50%", left: "96%" },
+];
+
 export function DilemmaModal({
   dilemma,
   onChoice,
@@ -21,256 +32,301 @@ export function DilemmaModal({
   dilemmaTimedOut,
 }: DilemmaModalProps) {
   const [selectedSide, setSelectedSide] = useState<"left" | "right" | null>(null);
-  const questionSize = mode === "primaria" ? "1.2vmin" : "1vmin";
+  const [isReady, setIsReady] = useState(false);
   const isClosingVisual = selectedSide !== null || isClosing;
-  const isUrgent = dilemmaTimeLeft <= 3;
+  const isUrgent = dilemmaTimeLeft <= 5;
+  const balanceUnit = MODE_CONFIG[mode].balanceUnit;
+  const buttonsLocked = !isReady || selectedSide !== null;
+
+  const timerClass =
+    dilemmaTimeLeft <= 3
+      ? "premium-dilemma-timer-num--critical"
+      : dilemmaTimeLeft <= 6
+        ? "premium-dilemma-timer-num--warn"
+        : "premium-dilemma-timer-num--safe";
+
+  const timerColor =
+    dilemmaTimeLeft <= 3 ? "#f87171" : dilemmaTimeLeft <= 6 ? "#fde047" : "#4ade80";
+
+  useEffect(() => {
+    const t = setTimeout(() => setIsReady(true), 300);
+    return () => clearTimeout(t);
+  }, []);
 
   const handleChoice = (choice: Choice, side: "left" | "right") => {
-    if (selectedSide !== null) return;
+    if (!isReady || selectedSide !== null) return;
     onChoiceIntent?.();
     setSelectedSide(side);
-    setTimeout(() => {
-      onChoice(choice);
-    }, 400);
+    setTimeout(() => onChoice(choice), 400);
   };
 
-  const criticalTime = dilemmaTimeLeft <= 3;
-  const urgentTime = dilemmaTimeLeft <= 5;
+  const particles = useMemo(() => PARTICLE_POSITIONS, []);
 
-  const buttonAnimation = isUrgent
-    ? "btnUrgency 0.4s ease-in-out infinite"
-    : "btnFloat 2s ease-in-out infinite";
-
-  function ChoiceButton({
-    side,
-    color,
-    label,
-    delta,
-    iconColor,
-  }: {
-    side: "left" | "right";
-    color: string;
-    label: string;
-    delta: number;
-    iconColor: string;
-  }) {
-    const isSelected = selectedSide === side;
-    const isOther = selectedSide !== null && selectedSide !== side;
-
-    return (
-      <div style={{ position: "relative", flex: 1 }}>
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: "#000",
-            transform: "translate(0.5vmin, 0.5vmin)",
-          }}
-        />
-        <button
-          type="button"
-          className="px-btn"
-          style={{
-            position: "relative",
-            width: "100%",
-            background: color,
-            padding: "1.5vmin 1vmin",
-            pointerEvents: selectedSide ? "none" : "auto",
-            opacity: isOther ? 0.2 : 1,
-            filter: isOther ? "grayscale(1)" : undefined,
-            transition: "all 0.1s steps(2)",
-            animation: buttonAnimation,
-            border: isSelected ? "0.6vmin solid #fff" : "0.5vmin solid #000",
-            boxShadow: isSelected ? undefined : "0.5vmin 0.5vmin 0 #000",
-            ...(isSelected ? { animation: "selectedPulse 0.3s steps(2) 3" } : {}),
-          }}
-          onClick={() => handleChoice(side === "left" ? dilemma.left : dilemma.right, side)}
-        >
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              height: "0.25vmin",
-              background: "rgba(255,255,255,0.3)",
-            }}
-          />
-          <div
-            style={{
-              width: "3.5vmin",
-              height: "3.5vmin",
-              margin: "0 auto 1vmin",
-              background: iconColor,
-              border: "0.3vmin solid #000",
-            }}
-          />
-          <div style={{ fontSize: "1vmin", lineHeight: 1.5 }}>{label}</div>
-          <div style={{ fontSize: "0.875vmin", color: "#000", marginTop: "1vmin", opacity: 0.8 }}>
-            {delta >= 0 ? "+" : ""}
-            {delta}
-          </div>
-        </button>
-        {isSelected && (
-          <div
-            style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              fontFamily: '"Press Start 2P", monospace',
-              fontSize: "4vmin",
-              color: "#fff",
-              pointerEvents: "none",
-              animation: "checkAppear 0.2s steps(4) forwards",
-              zIndex: 3,
-            }}
-          >
-            ✓
-          </div>
-        )}
-      </div>
-    );
-  }
+  const buttonDim = (side: "left" | "right") =>
+    selectedSide !== null && selectedSide !== side
+      ? { opacity: 0.25, filter: "grayscale(0.6)" as const }
+      : { opacity: isReady ? 1 : 0.6 };
 
   return (
     <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        background: criticalTime
-          ? "rgba(248, 113, 113, 0.25)"
-          : "rgba(0,0,0,0.85)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 6,
-        animation: urgentTime ? "hudShake 0.2s steps(3) infinite" : undefined,
-      }}
+      className={`premium-dilemma-overlay${isUrgent ? " premium-dilemma-overlay--urgent" : ""}`}
     >
+      <PremiumAmbient variant={isUrgent ? "danger" : "purple"} sparkleCount={8} />
+
+      <div className="premium-dilemma-particles">
+        {particles.map((p, i) => (
+          <div
+            key={i}
+            className="premium-dilemma-particle"
+            style={{ ...p, animationDelay: `${i * 0.6}s` }}
+          />
+        ))}
+      </div>
+
       <div
-        className={isClosingVisual ? undefined : "modal-entrance"}
+        className={[
+          "premium-dilemma-panel",
+          isClosingVisual ? "premium-dilemma-panel--exit" : "premium-dilemma-panel--entrance",
+        ].join(" ")}
         style={{
-          position: "relative",
-          maxWidth: "50vmin",
-          width: "90%",
-          background: "#1a1a2e",
-          border: criticalTime ? "0.6vmin solid #f87171" : "0.5vmin solid #000",
-          boxShadow: "0.75vmin 0.75vmin 0 #000",
-          padding: "2.5vmin",
-          animation: isClosingVisual ? "modalOut 0.35s ease-in forwards" : undefined,
-          willChange: "transform",
+          width: "min(92vw, 680px)",
+          maxWidth: "680px",
+          padding: 0,
         }}
       >
-        <p style={{ color: "#fde047", fontSize: "1.2vmin", margin: "0 0 2vmin" }}>⚡ DECISIÓN</p>
+        <div style={{ padding: "clamp(1rem, 2.5vmin, 2rem)" }}>
+          <div className="premium-dilemma-badge">⚡ DECISIÓN FINANCIERA</div>
 
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "1.5vmin",
-            marginBottom: "2vmin",
-          }}
-        >
+          <div className="premium-dilemma-timer-row">
+            <div className={`premium-dilemma-timer-num ${timerClass}`}>{dilemmaTimeLeft}</div>
+            <div className="premium-dilemma-timer-bar">
+              <div
+                className="premium-dilemma-timer-fill"
+                style={{
+                  width: `${(dilemmaTimeLeft / 10) * 100}%`,
+                  background: timerColor,
+                  color: timerColor,
+                }}
+              />
+            </div>
+            <span style={{ fontSize: "2vmin" }}>⏱</span>
+          </div>
+
           <div
             style={{
               fontFamily: '"Press Start 2P", monospace',
-              fontSize: "3.5vmin",
-              color:
-                dilemmaTimeLeft <= 3
-                  ? "#f87171"
-                  : dilemmaTimeLeft <= 6
-                    ? "#fde047"
-                    : "#4ade80",
-              animation: dilemmaTimeLeft <= 3 ? "blink 0.5s step-end infinite" : "none",
-              minWidth: "3vmin",
+              fontSize: "1.6vmin",
+              color: "#f1f5f9",
               textAlign: "center",
+              lineHeight: 2,
+              padding: "0 2vmin",
+              marginBottom: "0.5vmin",
             }}
           >
-            {dilemmaTimeLeft}
+            {dilemma.question}
           </div>
-          <div
-            style={{
-              flex: 1,
-              height: "1.5vmin",
-              background: "#1a1a2e",
-              border: "0.3vmin solid #000",
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                height: "100%",
-                width: `${(dilemmaTimeLeft / 10) * 100}%`,
-                background:
-                  dilemmaTimeLeft <= 3
-                    ? "#f87171"
-                    : dilemmaTimeLeft <= 6
-                      ? "#fde047"
-                      : "#4ade80",
-                transition: "width 0.9s linear, background 0.3s ease",
-              }}
-            />
-          </div>
-          <div
-            style={{
-              fontSize: "2.5vmin",
-              animation: dilemmaTimeLeft <= 3 ? "comboShake 0.3s ease-in-out infinite" : "none",
-            }}
-          >
-            ⏱️
-          </div>
-        </div>
 
-        <p
-          style={{
-            color: "#f1f5f9",
-            fontSize: questionSize,
-            margin: "0 0 2.5vmin",
-            lineHeight: 1.6,
-          }}
-        >
-          {dilemma.question}
-        </p>
-        <div style={{ display: "flex", gap: "1.5vmin" }}>
-          <ChoiceButton
-            side="left"
-            color="#4ade80"
-            label={dilemma.left.label}
-            delta={dilemma.left.delta}
-            iconColor="#065f46"
-          />
-          <ChoiceButton
-            side="right"
-            color="#f87171"
-            label={dilemma.right.label}
-            delta={dilemma.right.delta}
-            iconColor="#7f1d1d"
-          />
+          {/* ── BOTONES DE DECISIÓN ── */}
+          <div
+            style={{
+              display: "flex",
+              gap: "2vmin",
+              width: "100%",
+              marginTop: "2vmin",
+            }}
+          >
+            {/* ── BOTÓN VERDE — Buena decisión ── */}
+            <button
+              type="button"
+              onClick={() => handleChoice(dilemma.left, "left")}
+              disabled={buttonsLocked}
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "1vmin",
+                padding: "2.5vmin 1.5vmin",
+                background: "#16a34a",
+                border: "0.5vmin solid #000",
+                boxShadow: "0.6vmin 0.6vmin 0 #000",
+                cursor: isReady ? "pointer" : "not-allowed",
+                position: "relative",
+                overflow: "hidden",
+                animation: "btnPulseGreen 2s ease-in-out infinite",
+                willChange: "transform, box-shadow",
+                transition: "transform 0.05s steps(1)",
+                ...buttonDim("left"),
+              }}
+              onMouseEnter={(e) => {
+                if (buttonsLocked) return;
+                e.currentTarget.style.transform = "translate(-0.4vmin, -0.4vmin)";
+                e.currentTarget.style.boxShadow = "1vmin 1vmin 0 #000";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translate(0,0)";
+                e.currentTarget.style.boxShadow = "0.6vmin 0.6vmin 0 #000";
+              }}
+              onMouseDown={(e) => {
+                if (buttonsLocked) return;
+                e.currentTarget.style.transform = "translate(0.5vmin, 0.5vmin)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: "0.5vmin",
+                  background: "#4ade80",
+                }}
+              />
+              <div
+                style={{
+                  fontSize: "6vmin",
+                  color: "#fff",
+                  fontWeight: "bold",
+                  textShadow:
+                    "0 0.3vmin 0 #000, 0.3vmin 0 0 #000, -0.3vmin 0 0 #000, 0 -0.3vmin 0 #000",
+                  lineHeight: 1,
+                }}
+              >
+                ✓
+              </div>
+              <div
+                style={{
+                  fontFamily: '"Press Start 2P", monospace',
+                  fontSize: "1.3vmin",
+                  color: "#fff",
+                  textAlign: "center",
+                  textShadow: "0.1vmin 0.1vmin 0 #000",
+                  lineHeight: 1.6,
+                  maxWidth: "90%",
+                }}
+              >
+                {dilemma.left.label}
+              </div>
+              <div
+                style={{
+                  fontFamily: '"Press Start 2P", monospace',
+                  fontSize: "1.8vmin",
+                  color: "#fde047",
+                  textShadow: "0.2vmin 0.2vmin 0 #000",
+                  background: "rgba(0,0,0,0.3)",
+                  padding: "0.4vmin 1.2vmin",
+                  border: "0.2vmin solid rgba(255,255,255,0.2)",
+                }}
+              >
+                {dilemma.left.delta >= 0 ? "+" : ""}
+                {balanceUnit}
+                {dilemma.left.delta}
+              </div>
+            </button>
+
+            {/* ── BOTÓN ROJO — Mala decisión ── */}
+            <button
+              type="button"
+              onClick={() => handleChoice(dilemma.right, "right")}
+              disabled={buttonsLocked}
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "1vmin",
+                padding: "2.5vmin 1.5vmin",
+                background: "#dc2626",
+                border: "0.5vmin solid #000",
+                boxShadow: "0.6vmin 0.6vmin 0 #000",
+                cursor: isReady ? "pointer" : "not-allowed",
+                position: "relative",
+                overflow: "hidden",
+                animation: "btnPulseRed 2s ease-in-out 0.5s infinite",
+                willChange: "transform, box-shadow",
+                transition: "transform 0.05s steps(1)",
+                ...buttonDim("right"),
+              }}
+              onMouseEnter={(e) => {
+                if (buttonsLocked) return;
+                e.currentTarget.style.transform = "translate(-0.4vmin, -0.4vmin)";
+                e.currentTarget.style.boxShadow = "1vmin 1vmin 0 #000";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translate(0,0)";
+                e.currentTarget.style.boxShadow = "0.6vmin 0.6vmin 0 #000";
+              }}
+              onMouseDown={(e) => {
+                if (buttonsLocked) return;
+                e.currentTarget.style.transform = "translate(0.5vmin, 0.5vmin)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: "0.5vmin",
+                  background: "#f87171",
+                }}
+              />
+              <div
+                style={{
+                  fontSize: "6vmin",
+                  color: "#fff",
+                  fontWeight: "bold",
+                  textShadow:
+                    "0 0.3vmin 0 #000, 0.3vmin 0 0 #000, -0.3vmin 0 0 #000, 0 -0.3vmin 0 #000",
+                  lineHeight: 1,
+                }}
+              >
+                ✗
+              </div>
+              <div
+                style={{
+                  fontFamily: '"Press Start 2P", monospace',
+                  fontSize: "1.3vmin",
+                  color: "#fff",
+                  textAlign: "center",
+                  textShadow: "0.1vmin 0.1vmin 0 #000",
+                  lineHeight: 1.6,
+                  maxWidth: "90%",
+                }}
+              >
+                {dilemma.right.label}
+              </div>
+              <div
+                style={{
+                  fontFamily: '"Press Start 2P", monospace',
+                  fontSize: "1.8vmin",
+                  color: "#fde047",
+                  textShadow: "0.2vmin 0.2vmin 0 #000",
+                  background: "rgba(0,0,0,0.3)",
+                  padding: "0.4vmin 1.2vmin",
+                  border: "0.2vmin solid rgba(255,255,255,0.2)",
+                }}
+              >
+                {dilemma.right.delta >= 0 ? "+" : ""}
+                {balanceUnit}
+                {dilemma.right.delta}
+              </div>
+            </button>
+          </div>
         </div>
 
         {dilemmaTimedOut && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: "rgba(248, 113, 113, 0.92)",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "2vmin",
-              zIndex: 2,
-              animation: "modalIn 0.2s ease-out forwards",
-            }}
-          >
+          <div className="premium-dilemma-timeout">
             <div style={{ fontSize: "8vmin" }}>⏰</div>
             <div
               style={{
                 fontFamily: '"Press Start 2P", monospace',
                 fontSize: "2.5vmin",
                 color: "#fff",
-                textAlign: "center",
               }}
             >
               ¡TIEMPO!
@@ -278,7 +334,7 @@ export function DilemmaModal({
             <div
               style={{
                 fontFamily: '"Press Start 2P", monospace',
-                fontSize: "1.3vmin",
+                fontSize: "1.1vmin",
                 color: "#fff",
                 opacity: 0.9,
                 textAlign: "center",
@@ -291,7 +347,7 @@ export function DilemmaModal({
             <div
               style={{
                 fontFamily: '"Press Start 2P", monospace',
-                fontSize: "1.1vmin",
+                fontSize: "0.95vmin",
                 color: "#fff",
                 opacity: 0.7,
               }}

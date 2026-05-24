@@ -236,6 +236,7 @@ export function useRunnerLoop(
   const michiReactionRef = useRef<MichiReaction>("run");
   const npcApproachProgressRef = useRef(0);
   const npcArrivalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isProcessingRef = useRef(false);
 
   useEffect(() => {
     stateRef.current = state;
@@ -990,41 +991,45 @@ export function useRunnerLoop(
     phaseRef.current = "game_type_select";
   }, []);
 
-  const selectGameType = useCallback(
-    async (type: GameType) => {
-      const mode = modeRef.current;
-      if (!mode) return;
+  const selectGameType = useCallback((type: GameType) => {
+    const mode = modeRef.current;
+    if (!mode) return;
 
-      gameTypeRef.current = type;
-      setState((prev) => ({ ...prev, gameType: type }));
+    gameTypeRef.current = type;
+    phaseRef.current = "instructions";
+    setState((prev) => ({ ...prev, gameType: type, phase: "instructions" }));
+  }, []);
 
-      if (type === "single") {
-        const name = stateRef.current.playerName || "JUGADOR";
-        try {
-          const { roomId, playerId: pid } = await createSingleRoom(mode, name);
-          roomIdRef.current = roomId;
-          playerIdRef.current = pid;
-          playerNameRef.current = name;
-          onPlayerIdChange(pid);
-          setState((prev) => ({
-            ...prev,
-            gameType: type,
-            roomId,
-            playerName: name,
-          }));
-          beginCountdownLocal();
-        } catch {
-          setState((prev) => ({ ...prev, gameType: null }));
-          gameTypeRef.current = null;
-        }
-        return;
+  const goFromInstructions = useCallback(async () => {
+    const type = gameTypeRef.current;
+    const mode = modeRef.current;
+    if (!type || !mode) return;
+
+    if (type === "single") {
+      const name = stateRef.current.playerName || "JUGADOR";
+      try {
+        const { roomId, playerId: pid } = await createSingleRoom(mode, name);
+        roomIdRef.current = roomId;
+        playerIdRef.current = pid;
+        playerNameRef.current = name;
+        onPlayerIdChange(pid);
+        setState((prev) => ({
+          ...prev,
+          roomId,
+          playerName: name,
+        }));
+        beginCountdownLocal();
+      } catch {
+        gameTypeRef.current = null;
+        phaseRef.current = "game_type_select";
+        setState((prev) => ({ ...prev, gameType: null, phase: "game_type_select" }));
       }
+      return;
+    }
 
-      setState((prev) => ({ ...prev, gameType: type, phase: "lobby" }));
-      phaseRef.current = "lobby";
-    },
-    [createSingleRoom, onPlayerIdChange, beginCountdownLocal],
-  );
+    phaseRef.current = "lobby";
+    setState((prev) => ({ ...prev, phase: "lobby" }));
+  }, [createSingleRoom, onPlayerIdChange, beginCountdownLocal]);
 
   const setLobbyInfo = useCallback(
     (roomCode: string, playerName: string, roomId: string, phase: GamePhase = "waiting") => {
@@ -1086,9 +1091,13 @@ export function useRunnerLoop(
 
   const makeChoice = useCallback(
     async (choice: Choice) => {
+      if (isProcessingRef.current) return;
+
       const mode = modeRef.current;
       if (!mode) return;
       if (phaseRef.current !== "decision") return;
+
+      isProcessingRef.current = true;
 
       npcVisibleRef.current = false;
       npcArrivedRef.current = false;
@@ -1212,6 +1221,9 @@ export function useRunnerLoop(
           phase: "running",
           dilemmaIndex: dilemmaIndexRef.current,
         }));
+        setTimeout(() => {
+          isProcessingRef.current = false;
+        }, 1000);
       }, 1000);
 
       choiceFeedbackTimersRef.current = [t1, t2, t3];
@@ -1247,7 +1259,11 @@ export function useRunnerLoop(
   }, []);
 
   const startDilemmaTimer = useCallback(() => {
-    clearDilemmaCountdown();
+    if (dilemmaCountdownRef.current !== null) {
+      clearInterval(dilemmaCountdownRef.current);
+      dilemmaCountdownRef.current = null;
+    }
+
     dilemmaPlayerChoseRef.current = false;
     dilemmaSecondsRef.current = 10;
     setState((prev) => ({
@@ -1256,22 +1272,28 @@ export function useRunnerLoop(
       dilemmaTimedOut: false,
     }));
 
-    dilemmaCountdownRef.current = setInterval(() => {
-      dilemmaSecondsRef.current -= 1;
-      setState((prev) => ({
-        ...prev,
-        dilemmaTimeLeft: dilemmaSecondsRef.current,
-      }));
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (phaseRef.current !== "decision") return;
 
-      if (dilemmaSecondsRef.current <= 0) {
-        if (dilemmaCountdownRef.current !== null) {
-          clearInterval(dilemmaCountdownRef.current);
-          dilemmaCountdownRef.current = null;
-        }
-        handleDilemmaTimeout();
-      }
-    }, 1000);
-  }, [clearDilemmaCountdown, handleDilemmaTimeout]);
+        dilemmaCountdownRef.current = setInterval(() => {
+          dilemmaSecondsRef.current -= 1;
+          setState((prev) => ({
+            ...prev,
+            dilemmaTimeLeft: dilemmaSecondsRef.current,
+          }));
+
+          if (dilemmaSecondsRef.current <= 0) {
+            if (dilemmaCountdownRef.current !== null) {
+              clearInterval(dilemmaCountdownRef.current);
+              dilemmaCountdownRef.current = null;
+            }
+            handleDilemmaTimeout();
+          }
+        }, 1000);
+      });
+    });
+  }, [handleDilemmaTimeout]);
 
   startDilemmaTimerRef.current = startDilemmaTimer;
 
@@ -1402,6 +1424,7 @@ export function useRunnerLoop(
     countdownStartedRef.current = false;
     gameStartedRef.current = false;
     disconnectHandledRef.current = false;
+    isProcessingRef.current = false;
     rivalRef.current = null;
     playerIdRef.current = null;
     playerNameRef.current = "";
@@ -1504,6 +1527,7 @@ export function useRunnerLoop(
     setPhase,
     selectMode,
     selectGameType,
+    goFromInstructions,
     setLobbyInfo,
     clearLobbyError,
     attemptJoinRoom,

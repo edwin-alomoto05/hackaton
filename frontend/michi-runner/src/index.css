@@ -354,6 +354,24 @@ body {
     transform: translateY(-0.2vmin);
   }
 }
+@keyframes btnPulseGreen {
+  0%,
+  100% {
+    box-shadow: 0.6vmin 0.6vmin 0 #000, 0 0 0 0 #16a34a00;
+  }
+  50% {
+    box-shadow: 0.6vmin 0.6vmin 0 #000, 0 0 0 1vmin #16a34a44;
+  }
+}
+@keyframes btnPulseRed {
+  0%,
+  100% {
+    box-shadow: 0.6vmin 0.6vmin 0 #000, 0 0 0 0 #dc262600;
+  }
+  50% {
+    box-shadow: 0.6vmin 0.6vmin 0 #000, 0 0 0 1vmin #dc262644;
+  }
+}
 @keyframes timerGlow {
   0%,
   100% {

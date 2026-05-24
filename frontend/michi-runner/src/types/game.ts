@@ -23,6 +23,7 @@ export type GamePhase =
   | "intro"
   | "mode_select"
   | "game_type_select"
+  | "instructions"
   | "lobby"
   | "waiting"
   | "countdown"
